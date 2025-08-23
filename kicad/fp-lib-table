@@ -1,0 +1,7 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "USB_Micro_B")(type "KiCad")(uri "${KIPRJMOD}/footprints/USB_Micro_B.pretty")(options "")(descr ""))
+  (lib (name "logo")(type "KiCad")(uri "${KIPRJMOD}/footprints/logo.pretty")(options "")(descr ""))
+  (lib (name "Push_Button_12mm_with_Key")(type "KiCad")(uri "${KIPRJMOD}/footprints/Push_Button_12mm_with_Key.pretty")(options "")(descr ""))
+  (lib (name "Pin_Header")(type "KiCad")(uri "${KIPRJMOD}/footprints/Pin_Header.pretty")(options "")(descr ""))
+)
