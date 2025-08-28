@@ -2526,7 +2526,7 @@
 		)
 		(uuid "7744a34c-2b6b-47bd-b69e-1f46c56e3088")
 	)
-	(text "Known issue:\nSSD1306 max 3.3V operation,\nabsolute max 4V non-operation.\nXC6206P332 max 3.3+/-2% output\nSlight overvoltage against\nmax operation voltage may occur\n"
+	(text "Known issue:\nSSD1306 max 3.3V operation,\nabsolute max 4V non-operation.\nXC6206P332 max 3.3±2% output\nSlight overvoltage against\nmax operation voltage may occur\n"
 		(exclude_from_sim no)
 		(at 177.292 63.754 0)
 		(effects
@@ -6080,7 +6080,7 @@
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "50486e19-0499-496f-916f-b64f9bd5fb2f")
@@ -8350,7 +8350,7 @@
 		(at 130.81 66.04 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "e38a09f5-8fc3-4593-830e-cc7ff75ce9f0")
