@@ -7,3 +7,4 @@ src/*.elf
 src/*.hex
 src/*.lst
 src/*.map
+src/build.sh

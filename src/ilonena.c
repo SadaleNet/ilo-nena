@@ -24,11 +24,15 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "button.h"
+
 #include "ch32fun.h"
-#include "rv003usb.h"
 #include "ch32v003_GPIO_branchless.h"
+#include "rv003usb.h"
 #include <stdio.h>
 #include <string.h>
+
+volatile uint8_t key_to_be_sent = HID_KEY_NONE;
 
 void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int endp, uint32_t sendtok, struct rv003usb_internal *ist) {
 	if(endp == 0) {
@@ -37,18 +41,11 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 	} else if(endp == 1) {
 		// Keyboard end point
 		// Send the previous payload. We want to send out the response as soon as possible and cannot afford to wait for building the payload
-		static uint8_t button_state_prev = 0;
 		static uint8_t usb_response[8] = { 0x00 }; // Format: modifiers_keys (1 byte), reserved (1 byte), key_scancodes (6 bytes)
 		usb_send_data( usb_response, 8, 0, sendtok );
 
-		// Build the next response. If PA2 is pressed, send out ENTER. Otherwise, send out NONE.
-		uint8_t button_state = GPIO_digitalRead(GPIOv_from_PORT_PIN(GPIO_port_A, 2));
-		if(button_state && button_state != button_state_prev) {
-			usb_response[2] = HID_KEY_ENTER;
-		} else {
-			usb_response[2] = HID_KEY_NONE;
-		}
-		button_state_prev = button_state;
+		// Build the next response by sending out the key
+		usb_response[2] = key_to_be_sent;
 	}
 }
 
@@ -58,9 +55,26 @@ int main() {
 	usb_setup();
 
 	GPIO_port_enable(GPIO_port_A);
+	GPIO_pinMode(GPIOv_from_PORT_PIN(GPIO_port_A, 1), GPIO_pinMode_I_pullUp, GPIO_Speed_In);
 	GPIO_pinMode(GPIOv_from_PORT_PIN(GPIO_port_A, 2), GPIO_pinMode_I_pullUp, GPIO_Speed_In);
-	
+	button_init();
+
 	while(1) {
-		// Do nothing.
+		button_loop();
+		if(!GPIO_digitalRead(GPIOv_from_PORT_PIN(GPIO_port_A, 1))) {
+			key_to_be_sent = HID_KEY_BACKSPACE;
+		} else if(!GPIO_digitalRead(GPIOv_from_PORT_PIN(GPIO_port_A, 2))) {
+			key_to_be_sent = HID_KEY_ENTER;
+		} else {
+			key_to_be_sent = HID_KEY_NONE;
+			extern uint8_t button_state[18];
+			for(size_t i=0; i<18; i++) {
+				if(button_state[i]) {
+					key_to_be_sent = HID_KEY_A + i;
+					break;
+				}
+			}
+		}
+		Delay_Ms(1);
 	}
 }
