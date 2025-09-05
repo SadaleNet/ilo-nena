@@ -25,44 +25,65 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "ch32fun.h"
-#include "ch32v003_GPIO_branchless.h"
 #include <stdlib.h>
 
-#define BUTTON_COLUMN_PORT GPIO_port_D
-const static uint8_t BUTTON_COLUMN_MAP[] = {0, 2, 3, 4, 5, 6};
-#define BUTTON_ROW_PORT GPIO_port_C
-const static uint8_t BUTTON_ROW_MAP[] = {5, 6, 7};
+// Column output config
+#define BUTTON_COLUMN_GPIO_PORT (GPIOD)
+// output, push-pull, 2Mhz
+#define BUTTON_COLUMN_CFGLR_FLAG (GPIO_CFGLR_MODE0_1|GPIO_CFGLR_MODE2_1|GPIO_CFGLR_MODE3_1|GPIO_CFGLR_MODE4_1|GPIO_CFGLR_MODE5_1|GPIO_CFGLR_MODE6_1)
+#define BUTTON_COLUMN_CFGLR_MASK ((GPIO_CFGLR_MODE0|GPIO_CFGLR_MODE2|GPIO_CFGLR_MODE3|GPIO_CFGLR_MODE4|GPIO_CFGLR_MODE5|GPIO_CFGLR_MODE6) | (GPIO_CFGLR_CNF0|GPIO_CFGLR_CNF2|GPIO_CFGLR_CNF3|GPIO_CFGLR_CNF4|GPIO_CFGLR_CNF5|GPIO_CFGLR_CNF6))
+// column mapping: output LOW to the selected column and HIGH for other columns
+#define BUTTON_COLUMN_BSHR_BS (GPIO_BSHR_BS0|GPIO_BSHR_BS2|GPIO_BSHR_BS3|GPIO_BSHR_BS4|GPIO_BSHR_BS5|GPIO_BSHR_BS6)
+const static uint32_t BUTTON_COLUMN_BSHR_MASK_MAP[] = {
+	(BUTTON_COLUMN_BSHR_BS&~GPIO_BSHR_BS0)|GPIO_BSHR_BR0,
+	(BUTTON_COLUMN_BSHR_BS&~GPIO_BSHR_BS2)|GPIO_BSHR_BR2,
+	(BUTTON_COLUMN_BSHR_BS&~GPIO_BSHR_BS3)|GPIO_BSHR_BR3,
+	(BUTTON_COLUMN_BSHR_BS&~GPIO_BSHR_BS4)|GPIO_BSHR_BR4,
+	(BUTTON_COLUMN_BSHR_BS&~GPIO_BSHR_BS5)|GPIO_BSHR_BR5,
+	(BUTTON_COLUMN_BSHR_BS&~GPIO_BSHR_BS6)|GPIO_BSHR_BR6,
+	};
+#define BUTTON_COLUMN_COUNT (sizeof(BUTTON_COLUMN_BSHR_MASK_MAP)/sizeof(*BUTTON_COLUMN_BSHR_MASK_MAP))
+
+// Row input config
+#define BUTTON_ROW_GPIO_PORT (GPIOC)
+// input, pull-up/pull-down mode
+#define BUTTON_ROW_CFGLR_FLAG (GPIO_CFGLR_CNF5_1|GPIO_CFGLR_CNF6_1|GPIO_CFGLR_CNF7_1)
+#define BUTTON_ROW_CFGLR_MASK ((GPIO_CFGLR_MODE5|GPIO_CFGLR_MODE6|GPIO_CFGLR_MODE7) | (GPIO_CFGLR_CNF5|GPIO_CFGLR_CNF6|GPIO_CFGLR_CNF7))
+// pull up
+#define BUTTON_ROW_BSHR_FLAG (GPIO_BSHR_BS5|GPIO_BSHR_BS6|GPIO_BSHR_BS7)
+// row mapping
+const static uint32_t BUTTON_ROW_INDR_MASK_MAP[] = {GPIO_INDR_IDR7, GPIO_INDR_IDR6, GPIO_INDR_IDR5};
+#define BUTTON_ROW_COUNT (sizeof(BUTTON_ROW_INDR_MASK_MAP)/sizeof(*BUTTON_ROW_INDR_MASK_MAP))
+
 size_t button_scan_column = 0;
-uint8_t button_state[(sizeof(BUTTON_COLUMN_MAP)/sizeof(*BUTTON_COLUMN_MAP)) * (sizeof(BUTTON_ROW_MAP)/sizeof(*BUTTON_ROW_MAP))] = {0};
+uint8_t button_state[BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT] = {0};
 
 void button_init(void) {
-	GPIO_port_enable(BUTTON_COLUMN_PORT);
-	GPIO_port_enable(BUTTON_ROW_PORT);
+	// Enable clock for GPIOC and GPIOD
+	RCC->APB2PCENR |= (RCC_IOPCEN | RCC_IOPDEN);
 
-	// Output column
-	for(size_t i=0; i<sizeof(BUTTON_COLUMN_MAP)/sizeof(*BUTTON_COLUMN_MAP); i++) {
-		GPIO_pinMode(GPIOv_from_PORT_PIN(BUTTON_COLUMN_PORT, BUTTON_COLUMN_MAP[i]), GPIO_pinMode_O_pushPull, GPIO_Speed_10MHz);
-	}
+	// Configure column as output, push-pull, 2Mhz
+	BUTTON_COLUMN_GPIO_PORT->CFGLR = (BUTTON_COLUMN_GPIO_PORT->CFGLR & ~BUTTON_COLUMN_CFGLR_MASK) | (BUTTON_COLUMN_CFGLR_FLAG);
 
-	// Input row
-	for(size_t i=0; i<sizeof(BUTTON_ROW_MAP)/sizeof(*BUTTON_ROW_MAP); i++) {
-		GPIO_pinMode(GPIOv_from_PORT_PIN(BUTTON_ROW_PORT, BUTTON_ROW_MAP[i]), GPIO_pinMode_I_pullUp, GPIO_Speed_In);
-	}
+	// Configure row as input, pull-up
+	BUTTON_ROW_GPIO_PORT->CFGLR = (BUTTON_ROW_GPIO_PORT->CFGLR & ~BUTTON_ROW_CFGLR_MASK) | (BUTTON_ROW_CFGLR_FLAG);
+	BUTTON_ROW_GPIO_PORT->BSHR = BUTTON_ROW_BSHR_FLAG;
 
+	// Initialize the state variables
 	button_scan_column = 0;
 	memset(button_state, 0, sizeof(button_state));
 }
 
 void button_loop(void) {
-	for(size_t i=0; i<(sizeof(BUTTON_ROW_MAP)/sizeof(*BUTTON_ROW_MAP)); i++) {
-		button_state[button_scan_column*(sizeof(BUTTON_ROW_MAP)/sizeof(*BUTTON_ROW_MAP))+i] = !GPIO_digitalRead(GPIOv_from_PORT_PIN(BUTTON_ROW_PORT, BUTTON_ROW_MAP[i]));
+	// read from the rows
+	uint32_t row_reading = BUTTON_ROW_GPIO_PORT->INDR;
+	for(size_t i=0; i<BUTTON_ROW_COUNT; i++) {
+		button_state[BUTTON_COLUMN_COUNT*i+button_scan_column] = !(row_reading & BUTTON_ROW_INDR_MASK_MAP[i]);
 	}
 
-	if(++button_scan_column >= sizeof(BUTTON_COLUMN_MAP)/sizeof(*BUTTON_COLUMN_MAP)) {
+	// write to the columns
+	if(++button_scan_column >= BUTTON_COLUMN_COUNT) {
 		button_scan_column = 0;
 	}
-	for(size_t i=0; i<sizeof(BUTTON_COLUMN_MAP)/sizeof(*BUTTON_COLUMN_MAP); i++) {
-		GPIO_digitalWrite(GPIOv_from_PORT_PIN(BUTTON_COLUMN_PORT, BUTTON_COLUMN_MAP[i]), high);
-	}
-	GPIO_digitalWrite(GPIOv_from_PORT_PIN(BUTTON_COLUMN_PORT, BUTTON_COLUMN_MAP[button_scan_column]), low);
+	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_scan_column];
 }
