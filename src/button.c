@@ -27,6 +27,8 @@
 #include "ch32fun.h"
 #include <stdlib.h>
 
+#define BUTTON_SCAN_INTERVAL_US (1000) // The interval between scaning one column and the next column
+
 // Column output config
 #define BUTTON_COLUMN_GPIO_PORT (GPIOD)
 // output, push-pull, 2Mhz
@@ -65,16 +67,19 @@ const static uint32_t BUTTON_ROW_INDR_MASK_MAP[] = {GPIO_INDR_IDR7, GPIO_INDR_ID
 const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_INDR_IDR2};
 #define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
 
-
-size_t button_scan_column = 0;
-uint8_t button_state[BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+BUTTON_DEDICATED_COUNT] = {0};
+volatile uint32_t button_state = 0;
 
 void button_init(void) {
+	// Initialize the state variable(s)
+	button_state = 0;
+
 	// Enable clock for GPIOA, GPIOC and GPIOD
 	RCC->APB2PCENR |= (RCC_IOPAEN | RCC_IOPCEN | RCC_IOPDEN);
 
 	// Configure column as output, push-pull, 2Mhz
 	BUTTON_COLUMN_GPIO_PORT->CFGLR = (BUTTON_COLUMN_GPIO_PORT->CFGLR & ~BUTTON_COLUMN_CFGLR_MASK) | BUTTON_COLUMN_CFGLR_FLAG;
+	// Write to the column for the first scan
+	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_state];
 
 	// Configure row as input, pull-up
 	BUTTON_ROW_GPIO_PORT->CFGLR = (BUTTON_ROW_GPIO_PORT->CFGLR & ~BUTTON_ROW_CFGLR_MASK) | BUTTON_ROW_CFGLR_FLAG;
@@ -84,27 +89,64 @@ void button_init(void) {
 	BUTTON_DEDICATED_GPIO_PORT->CFGLR = (BUTTON_DEDICATED_GPIO_PORT->CFGLR & ~BUTTON_DEDICATED_CFGLR_MASK) | BUTTON_DEDICATED_CFGLR_FLAG;
 	BUTTON_DEDICATED_GPIO_PORT->BSHR = BUTTON_DEDICATED_BSHR_FLAG;
 
-	// Initialize the state variables
-	button_scan_column = 0;
-	memset(button_state, 0, sizeof(button_state));
+	// Enable clock for TIM2
+	RCC->APB1PCENR |= RCC_TIM2EN;
+	// Enble interrupt when update flag is active
+	TIM2->DMAINTENR = TIM_UIE;
+	// Set timer interval
+	// Example (FUNCONF_SYSTEM_CORE_CLOCK=48000000, BUTTON_SCAN_INTERVAL_US=1000): 48000000/48/1000 = 1000Hz
+	TIM2->PSC = (FUNCONF_SYSTEM_CORE_CLOCK/1000000-1);
+	TIM2->ATRLR = (BUTTON_SCAN_INTERVAL_US-1);
+	// Single-shot mode, only set update flag when the timer overflows. Also start timer!
+	TIM2->CTLR1 = TIM_OPM | TIM_URS | TIM_CEN;
+
+	// PFIC: For TIM2_IRQHandler, enable preemption for the interrupt. Also enable the interrupt.
+	PFIC->IPRIOR[TIM2_IRQn] = 0x80;
+	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
 }
 
 void button_loop(void) {
+	static size_t button_scan_column = 0;
+
 	// read from the rows
 	uint32_t row_reading = BUTTON_ROW_GPIO_PORT->INDR;
 	for(size_t i=0; i<BUTTON_ROW_COUNT; i++) {
-		button_state[BUTTON_COLUMN_COUNT*i+button_scan_column] = !(row_reading & BUTTON_ROW_INDR_MASK_MAP[i]);
+		uint32_t index = (BUTTON_COLUMN_COUNT*i+button_scan_column);
+		button_state = (button_state & ~(1U << index)) | (!(row_reading & BUTTON_ROW_INDR_MASK_MAP[i]) << index);
 	}
 
-	// write to the columns
+	// Resets column index when it overflows
 	if(++button_scan_column >= BUTTON_COLUMN_COUNT) {
-		// Resets column index when it overflows
 		button_scan_column = 0;
+
 		// Also read the dedicated button state
 		uint32_t dedicated_reading = BUTTON_DEDICATED_GPIO_PORT->INDR;
 		for(size_t i=0; i<BUTTON_DEDICATED_COUNT; i++) {
-			button_state[BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+i] = !(dedicated_reading & BUTTON_DEDICATED_INDR_MASK_MAP[i]);
+			uint32_t index = (BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+i);
+			button_state = (button_state & ~(1U << index)) | (!(dedicated_reading & BUTTON_DEDICATED_INDR_MASK_MAP[i]) << index);
 		}
 	}
+	// write to the columns
 	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_scan_column];
+}
+
+void INTERRUPT_DECORATOR TIM2_IRQHandler(void) {
+	// For performance, we just set the interrupt flags to zero. We're not gonna use TIM2 interrupt flags for anything else anyway
+	// TIM2->INTFR &= TIM_UIF;
+	TIM2->INTFR = 0;
+	button_loop();
+
+	// Start the timer again. This is required because we're in single-shot mode.
+	// Purpose of using single-shot mode:
+	// We set the keyscan column output, then we must wait for a delay, then we read the row input in next timer interrupt.
+	// If we use continuous mode instead of single-shot, in case a higher priority interrupt preempted and takes a long time,
+	// our current timer interrupt would get triggered again right after it ended, which would eliminate the required delay
+	TIM2->CTLR1 |= TIM_CEN;
+}
+
+uint32_t button_get_state(void) {
+	__disable_irq();
+	uint32_t ret = button_state;
+	__enable_irq();
+	return ret;
 }

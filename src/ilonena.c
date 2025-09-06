@@ -50,18 +50,20 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 
 int main() {
 	SystemInit();
+
+	// Enable interrupt nesting for rv003usb software USB library
+	__set_INTSYSCR( __get_INTSYSCR() | 0x02 );
+
 	Delay_Ms(1); // Ensures USB re-enumeration after bootloader or reset; Spec demand >2.5µs ( TDDIS )
 	usb_setup();
 
 	button_init();
 
 	while(1) {
-		button_loop();
-
 		uint8_t found = 0;
-		extern uint8_t button_state[20];
-		for(size_t i=0; i<sizeof(button_state)/sizeof(*button_state); i++) {
-			if(button_state[i]) {
+		uint32_t button_state = button_get_state();
+		for(size_t i=0; i<20; i++) {
+			if(button_state & (1U << i)) {
 				key_to_be_sent = HID_KEY_A + i;
 				found = 1;
 				break;

@@ -24,5 +24,8 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdint.h>
+
 void button_init(void);
-void button_loop(void);
+// void button_loop(void); // Let the TIM2 trigger it. No need to be called externally
+uint32_t button_get_state(void); // Each bit is a button. 1 if held, 0 if released
