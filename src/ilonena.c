@@ -27,7 +27,6 @@
 #include "button.h"
 
 #include "ch32fun.h"
-#include "ch32v003_GPIO_branchless.h"
 #include "rv003usb.h"
 #include <stdio.h>
 #include <string.h>
@@ -54,27 +53,24 @@ int main() {
 	Delay_Ms(1); // Ensures USB re-enumeration after bootloader or reset; Spec demand >2.5µs ( TDDIS )
 	usb_setup();
 
-	GPIO_port_enable(GPIO_port_A);
-	GPIO_pinMode(GPIOv_from_PORT_PIN(GPIO_port_A, 1), GPIO_pinMode_I_pullUp, GPIO_Speed_In);
-	GPIO_pinMode(GPIOv_from_PORT_PIN(GPIO_port_A, 2), GPIO_pinMode_I_pullUp, GPIO_Speed_In);
 	button_init();
 
 	while(1) {
 		button_loop();
-		if(!GPIO_digitalRead(GPIOv_from_PORT_PIN(GPIO_port_A, 1))) {
-			key_to_be_sent = HID_KEY_BACKSPACE;
-		} else if(!GPIO_digitalRead(GPIOv_from_PORT_PIN(GPIO_port_A, 2))) {
-			key_to_be_sent = HID_KEY_ENTER;
-		} else {
-			key_to_be_sent = HID_KEY_NONE;
-			extern uint8_t button_state[18];
-			for(size_t i=0; i<18; i++) {
-				if(button_state[i]) {
-					key_to_be_sent = HID_KEY_A + i;
-					break;
-				}
+
+		uint8_t found = 0;
+		extern uint8_t button_state[20];
+		for(size_t i=0; i<sizeof(button_state)/sizeof(*button_state); i++) {
+			if(button_state[i]) {
+				key_to_be_sent = HID_KEY_A + i;
+				found = 1;
+				break;
 			}
 		}
+		if(!found) {
+			key_to_be_sent = HID_KEY_NONE;
+		}
+
 		Delay_Ms(1);
 	}
 }

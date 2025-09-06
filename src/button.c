@@ -55,19 +55,34 @@ const static uint32_t BUTTON_COLUMN_BSHR_MASK_MAP[] = {
 const static uint32_t BUTTON_ROW_INDR_MASK_MAP[] = {GPIO_INDR_IDR7, GPIO_INDR_IDR6, GPIO_INDR_IDR5};
 #define BUTTON_ROW_COUNT (sizeof(BUTTON_ROW_INDR_MASK_MAP)/sizeof(*BUTTON_ROW_INDR_MASK_MAP))
 
+// Dedicated button config (the buttons that's dedicated GPIO pin)
+#define BUTTON_DEDICATED_GPIO_PORT (GPIOA)
+// input, pull-up/pull-down mode
+#define BUTTON_DEDICATED_CFGLR_FLAG (GPIO_CFGLR_CNF1_1|GPIO_CFGLR_CNF2_1)
+#define BUTTON_DEDICATED_CFGLR_MASK ((GPIO_CFGLR_MODE1|GPIO_CFGLR_MODE2) | (GPIO_CFGLR_CNF1|GPIO_CFGLR_CNF2))
+// pull up
+#define BUTTON_DEDICATED_BSHR_FLAG (GPIO_BSHR_BS1|GPIO_BSHR_BS2)
+const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_INDR_IDR2};
+#define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
+
+
 size_t button_scan_column = 0;
-uint8_t button_state[BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT] = {0};
+uint8_t button_state[BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+BUTTON_DEDICATED_COUNT] = {0};
 
 void button_init(void) {
-	// Enable clock for GPIOC and GPIOD
-	RCC->APB2PCENR |= (RCC_IOPCEN | RCC_IOPDEN);
+	// Enable clock for GPIOA, GPIOC and GPIOD
+	RCC->APB2PCENR |= (RCC_IOPAEN | RCC_IOPCEN | RCC_IOPDEN);
 
 	// Configure column as output, push-pull, 2Mhz
-	BUTTON_COLUMN_GPIO_PORT->CFGLR = (BUTTON_COLUMN_GPIO_PORT->CFGLR & ~BUTTON_COLUMN_CFGLR_MASK) | (BUTTON_COLUMN_CFGLR_FLAG);
+	BUTTON_COLUMN_GPIO_PORT->CFGLR = (BUTTON_COLUMN_GPIO_PORT->CFGLR & ~BUTTON_COLUMN_CFGLR_MASK) | BUTTON_COLUMN_CFGLR_FLAG;
 
 	// Configure row as input, pull-up
-	BUTTON_ROW_GPIO_PORT->CFGLR = (BUTTON_ROW_GPIO_PORT->CFGLR & ~BUTTON_ROW_CFGLR_MASK) | (BUTTON_ROW_CFGLR_FLAG);
+	BUTTON_ROW_GPIO_PORT->CFGLR = (BUTTON_ROW_GPIO_PORT->CFGLR & ~BUTTON_ROW_CFGLR_MASK) | BUTTON_ROW_CFGLR_FLAG;
 	BUTTON_ROW_GPIO_PORT->BSHR = BUTTON_ROW_BSHR_FLAG;
+
+	// Configure dedicated button as input, pull-up
+	BUTTON_DEDICATED_GPIO_PORT->CFGLR = (BUTTON_DEDICATED_GPIO_PORT->CFGLR & ~BUTTON_DEDICATED_CFGLR_MASK) | BUTTON_DEDICATED_CFGLR_FLAG;
+	BUTTON_DEDICATED_GPIO_PORT->BSHR = BUTTON_DEDICATED_BSHR_FLAG;
 
 	// Initialize the state variables
 	button_scan_column = 0;
@@ -83,7 +98,13 @@ void button_loop(void) {
 
 	// write to the columns
 	if(++button_scan_column >= BUTTON_COLUMN_COUNT) {
+		// Resets column index when it overflows
 		button_scan_column = 0;
+		// Also read the dedicated button state
+		uint32_t dedicated_reading = BUTTON_DEDICATED_GPIO_PORT->INDR;
+		for(size_t i=0; i<BUTTON_DEDICATED_COUNT; i++) {
+			button_state[BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+i] = !(dedicated_reading & BUTTON_DEDICATED_INDR_MASK_MAP[i]);
+		}
 	}
 	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_scan_column];
 }
