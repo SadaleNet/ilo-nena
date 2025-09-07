@@ -28,6 +28,11 @@
 #include <stdlib.h>
 
 #define BUTTON_SCAN_INTERVAL_US (1000) // The interval between scaning one column and the next column
+// Number of debounces required for the button state recorded as pressed/released
+// The debounce state is initialized as zero, incremented if a press is detected, decremented else.
+// The state is capped at [-BUTTON_DEBOUNCE_THRESHOLD, BUTTON_DEBOUNCE_THRESHOLD]
+// Once it hits either BUTTON_DEBOUNCE_THRESHOLD or negative BUTTON_DEBOUNCE_THRESHOLD, it'd be recorded.
+#define BUTTON_DEBOUNCE_THRESHOLD (4)
 
 // Column output config
 #define BUTTON_COLUMN_GPIO_PORT (GPIOD)
@@ -105,14 +110,33 @@ void button_init(void) {
 	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
 }
 
+static uint32_t button_handle_debounce(uint8_t reading, uint32_t state, int8_t debounce[], size_t index) {
+	if(reading) {
+		if(++debounce[index] >= BUTTON_DEBOUNCE_THRESHOLD) {
+			debounce[index] = BUTTON_DEBOUNCE_THRESHOLD;
+			state = (state & ~(1U << index)) | (1 << index);
+		}
+	} else {
+		if(--debounce[index] <= -BUTTON_DEBOUNCE_THRESHOLD) {
+			debounce[index] = -BUTTON_DEBOUNCE_THRESHOLD;
+			state = (state & ~(1U << index));
+		}
+	}
+	return state;
+}
+
 void button_loop(void) {
 	static size_t button_scan_column = 0;
+	// positive is pressed count, negative is released count
+	static int8_t button_debounce[BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT] = {0};
 
 	// read from the rows
 	uint32_t row_reading = BUTTON_ROW_GPIO_PORT->INDR;
 	for(size_t i=0; i<BUTTON_ROW_COUNT; i++) {
-		uint32_t index = (BUTTON_COLUMN_COUNT*i+button_scan_column);
-		button_state = (button_state & ~(1U << index)) | (!(row_reading & BUTTON_ROW_INDR_MASK_MAP[i]) << index);
+		button_state = button_handle_debounce(
+			!(row_reading & BUTTON_ROW_INDR_MASK_MAP[i]), button_state,
+			button_debounce, BUTTON_COLUMN_COUNT*i+button_scan_column
+		);
 	}
 
 	// Resets column index when it overflows
@@ -122,8 +146,10 @@ void button_loop(void) {
 		// Also read the dedicated button state
 		uint32_t dedicated_reading = BUTTON_DEDICATED_GPIO_PORT->INDR;
 		for(size_t i=0; i<BUTTON_DEDICATED_COUNT; i++) {
-			uint32_t index = (BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+i);
-			button_state = (button_state & ~(1U << index)) | (!(dedicated_reading & BUTTON_DEDICATED_INDR_MASK_MAP[i]) << index);
+			button_state = button_handle_debounce(
+				!(dedicated_reading & BUTTON_DEDICATED_INDR_MASK_MAP[i]), button_state,
+				button_debounce, BUTTON_COLUMN_COUNT*BUTTON_ROW_COUNT+i
+			);
 		}
 	}
 	// write to the columns
