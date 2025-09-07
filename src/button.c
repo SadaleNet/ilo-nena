@@ -25,7 +25,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "ch32fun.h"
-#include <stdlib.h>
 
 #define BUTTON_SCAN_INTERVAL_US (1000) // The interval between scaning one column and the next column
 // Number of debounces required for the button state recorded as pressed/released
