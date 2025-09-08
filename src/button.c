@@ -110,6 +110,8 @@ void button_init(void) {
 }
 
 static uint32_t button_handle_debounce(uint8_t reading, uint32_t state, int8_t debounce[], size_t index) {
+	// Increases debounce count if button is pressed, decrease else
+	// The button press/release is only recorded if a threshold is reached
 	if(reading) {
 		if(++debounce[index] >= BUTTON_DEBOUNCE_THRESHOLD) {
 			debounce[index] = BUTTON_DEBOUNCE_THRESHOLD;
@@ -170,6 +172,9 @@ void INTERRUPT_DECORATOR TIM2_IRQHandler(void) {
 }
 
 uint32_t button_get_state(void) {
+	// Disable global interrupt instead of just TIM2 interrupt
+	// because it takes less cycles to do so
+	// and the duration that the interrupt turned off is short enough
 	__disable_irq();
 	uint32_t ret = button_state;
 	__enable_irq();
