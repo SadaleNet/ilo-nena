@@ -25,6 +25,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "button.h"
+#include "display.h"
 
 #include "ch32fun.h"
 #include "rv003usb.h"
@@ -58,7 +59,9 @@ int main() {
 	usb_setup();
 
 	button_init();
+	display_init();
 
+	uint32_t last_update_tick = SysTick->CNT;
 	while(1) {
 		uint8_t found = 0;
 		uint32_t button_state = button_get_state();
@@ -72,6 +75,15 @@ int main() {
 		if(!found) {
 			key_to_be_sent = HID_KEY_NONE;
 		}
+
+		// Update graphic every 30ms. TODO: remove. It's just a piece of code for testing the display
+		if(SysTick->CNT - last_update_tick >= FUNCONF_SYSTEM_CORE_CLOCK/1000 * 30) {
+			last_update_tick = SysTick->CNT;
+			display_draw_16(NULL, 0, 0, 0, 0);
+			display_set_refresh_flag();
+		}
+
+		display_loop();
 
 		Delay_Ms(1);
 	}

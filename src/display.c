@@ -1,0 +1,312 @@
+// Copyright 2025 Wong Cho Ching <https://sadale.net>
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright
+// notice, this list of conditions and the following disclaimer in the
+// documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+// OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+// AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+#include "ch32fun.h"
+#include <stdlib.h>
+
+#define DISPLAY_I2C_ADDR (0x3C)
+#define DISPLAY_I2C_CLOCKRATE (100000) // SSD1306 supports up to 400kHz
+
+// Adapted from the sequence in the appendix of the SSD1306 specs
+const uint8_t display_init_array[] =
+{
+	0x00, // Control byte: the following bytes are to be treated as commands
+	0xA8, 0x3F, // Set MUX ratio to 64MUX (0b111111)
+	0xD3, 0x00, // Set display offset to 0
+	0x40, // Set display start line to 0
+	0xA1, // Set segment remap (column address 127 is mapped to SEG0)
+	0xC8, // Set COM output scan direction to reverse (remapped mode. Scan from COM[N-1] to COM0)
+	0xDA, 0x22, // Set COM pins hardware configuration (Sequential COM pin, Enable COM Left/Right remap)
+	0x81, 0x7F, // Set Contrast Control (127)
+	0xA4, // Entire Display on (0xA4 is display on, 0xA5 is display off)
+	0xA6, // Non-inverted display (0xA7 is inverted display)
+	0xD5, 0x80, // Set oscillator frequency (Fosc=1000b, Fdiv=0000b)
+	0x8D, 0x14, // Enable charge pump regulator
+	0xAF, // Display ON
+};
+
+
+#define DISPLAY_WIDTH (128)
+#define DISPLAY_DATA_COMMAND_SIZE (20)
+#define DISPLAY_DATA_SIZE (DISPLAY_WIDTH*4)
+static uint8_t display_data_array[DISPLAY_DATA_COMMAND_SIZE+DISPLAY_DATA_SIZE] = {
+	0x00, 0x00, 0x00, // Padding to make the graphc RAM area align with uint32_t
+	0x80, 0x20, 0x80, 0x21, // Set memory addressing mode (Vertical addressing mode)
+	0x80, 0x21, 0x80, 0x00, 0x80, 0x7F, // Setup column start and end address (0..127)
+	0x80, 0x22, 0x80, 0x00, 0x80, 0x03, // Setup page start and end address (0..3)
+	0x40, // all of the subsequent bytes are for OLED graphic RAM data.
+	// 512 bytes of zeros (generated with Python `print((('0x00, '*16)[:-1] + '\n') * 32)`)
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+static uint8_t *const display_data_dma_start_address = &display_data_array[3];
+static uint32_t *const display_data_buffer = (uint32_t*)&display_data_array[20];
+
+#define DISPLAY_REFRESH_FLAG_INIT (1U<<0)
+#define DISPLAY_REFRESH_FLAG_GRAPHIC (1U<<1)
+uint8_t display_refresh_flag = 0;
+uint8_t display_refresh_flag_processing = 0;
+
+enum display_loop_step {
+	DISPLAY_LOOP_STEP_IDLE,
+	DISPLAY_LOOP_STEP_WAIT_FRAME, // common wait state shared by many SEND_ states
+	DISPLAY_LOOP_STEP_WAIT_BUS_IDLE,
+	DISPLAY_LOOP_STEP_SEND_START_FRAME,
+	DISPLAY_LOOP_STEP_SEND_ADDRESS,
+	DISPLAY_LOOP_STEP_SEND_DATA_DMA,
+	DISPLAY_LOOP_STEP_WAIT_DMA,
+	DISPLAY_LOOP_STEP_SEND_END_FRAME,
+	DISPLAY_LOOP_STEP_SUCCESS,
+	DISPLAY_LOOP_STEP_RESET_I2C,
+};
+
+enum display_loop_step display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+
+#define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
+#define DISPLAY_FRAME_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
+#define DISPLAY_DMA_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms. It takes 48ms to transfer 530 bytes at 100kHz.
+enum display_loop_step display_loop_step_next;
+uint32_t display_loop_step_start_waiting_tick;
+uint16_t display_loop_step_expected_i2c_star1;
+uint16_t display_loop_step_expected_i2c_star2;
+uint8_t display_loop_step_reset_i2c_on_error;
+
+uint8_t display_i2c_reset_performed = 0;
+
+void display_loop(void)
+{
+	// Haters gonna hate. Using goto label here makes the code much cleaner than using do-while.
+	process_again:
+	switch(display_loop_step) {
+		case DISPLAY_LOOP_STEP_IDLE:
+			if(display_refresh_flag) {
+				if(display_refresh_flag & DISPLAY_REFRESH_FLAG_INIT) {
+					DMA1_Channel6->MADDR = (uint32_t)display_init_array;
+					DMA1_Channel6->CNTR = sizeof(display_init_array);
+					display_refresh_flag_processing = DISPLAY_REFRESH_FLAG_INIT;
+				} else if(display_refresh_flag & DISPLAY_REFRESH_FLAG_GRAPHIC) {
+					DMA1_Channel6->MADDR = (uint32_t)display_data_dma_start_address;
+					DMA1_Channel6->CNTR = sizeof(display_data_array)-(display_data_dma_start_address-display_data_array);
+					display_refresh_flag_processing = DISPLAY_REFRESH_FLAG_GRAPHIC;
+				}
+
+				// Clear error flags
+				I2C1->STAR1 &= ~(I2C_STAR1_PECERR|I2C_STAR1_OVR|I2C_STAR1_AF|I2C_STAR1_ARLO|I2C_STAR1_BERR);
+				DMA1->INTFCR = DMA_CTEIF6;
+
+				display_loop_step_reset_i2c_on_error = 0;
+				display_loop_step_start_waiting_tick = SysTick->CNT;
+				display_loop_step = DISPLAY_LOOP_STEP_WAIT_BUS_IDLE;
+				goto process_again;
+			}
+		break;
+		case DISPLAY_LOOP_STEP_WAIT_FRAME:
+			// Rationale not to use interrupt for handling completion of sending I2C frame:
+			// Reason 1:
+			// CH32V003 Only support two level of interrupt preemption.
+			// The Software USB interrupt takes one, the button keyscan timer takes another one.
+			// If I have an additional interrupt, it can make Software USB's interrupt unable to get triggered.
+			// I would need some clever overengineered mechanism to workaround that, which isn't worth the benefit.
+			// Reason 2:
+			// In this project, I don't intend to refresh the display often so the rate that
+			// the I2C communication mechanism get triggered is rare, making performance less important
+			// Reason 3:
+			// The I2C communication is just output only. Extra delay by polling won't hurt much.
+
+			// Must read STAR1 first, then read STAR2. Otherwise STAR2.ADDR won't get reset by hardware
+			if(I2C1->STAR1 == display_loop_step_expected_i2c_star1 && I2C1->STAR2 == display_loop_step_expected_i2c_star2) {
+				display_loop_step = display_loop_step_next;
+				goto process_again;
+			} else if (I2C1->STAR1 & (I2C_STAR1_PECERR|I2C_STAR1_OVR|I2C_STAR1_AF|I2C_STAR1_ARLO|I2C_STAR1_BERR) ||
+				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_FRAME_TIMEOUT) {
+				if(!display_loop_step_reset_i2c_on_error) {
+					display_loop_step = DISPLAY_LOOP_STEP_SEND_END_FRAME;
+				} else {
+					display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C;
+				}
+				goto process_again;
+			}
+		break;
+		case DISPLAY_LOOP_STEP_WAIT_BUS_IDLE:
+			if(!(I2C1->STAR2 & I2C_STAR2_BUSY)) {
+				display_loop_step = DISPLAY_LOOP_STEP_SEND_START_FRAME;
+				goto process_again;
+			} else if (SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_BUS_IDLE_TIMEOUT) {
+				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C;
+				goto process_again;
+			}
+		break;
+		case DISPLAY_LOOP_STEP_SEND_START_FRAME:
+			I2C1->CTLR1 |= I2C_CTLR1_START;
+
+			display_loop_step_expected_i2c_star1 = I2C_STAR1_SB;
+			display_loop_step_expected_i2c_star2 = I2C_STAR2_MSL|I2C_STAR2_BUSY;
+			display_loop_step_next = DISPLAY_LOOP_STEP_SEND_ADDRESS;
+			display_loop_step_start_waiting_tick = SysTick->CNT;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
+		break;
+		case DISPLAY_LOOP_STEP_SEND_ADDRESS:
+			I2C1->DATAR = DISPLAY_I2C_ADDR<<1;
+
+			display_loop_step_expected_i2c_star1 = I2C_STAR1_ADDR|I2C_STAR1_TXE;
+			display_loop_step_expected_i2c_star2 = I2C_STAR2_MSL|I2C_STAR2_BUSY|I2C_STAR2_TRA;
+			display_loop_step_next = DISPLAY_LOOP_STEP_SEND_DATA_DMA;
+			display_loop_step_start_waiting_tick = SysTick->CNT;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
+		break;
+		case DISPLAY_LOOP_STEP_SEND_DATA_DMA:
+			DMA1_Channel6->CNTR = sizeof(display_data_array)-(display_data_dma_start_address-display_data_array);
+			DMA1_Channel6->CFGR |= DMA_CFGR6_EN;
+			display_loop_step_start_waiting_tick = SysTick->CNT;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_DMA;
+		break;
+		case DISPLAY_LOOP_STEP_WAIT_DMA:
+		{
+			uint8_t go_to_next_step = 0;
+			if(DMA1->INTFR & DMA_TCIF6) {
+				DMA1->INTFCR = DMA_CTCIF6;
+				go_to_next_step = 1;
+			} else if ((DMA1->INTFR & DMA_TEIF6) ||
+				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_DMA_TIMEOUT) {
+				display_loop_step_reset_i2c_on_error = 1;
+				go_to_next_step = 1;
+			}
+
+			if(go_to_next_step) {
+				DMA1_Channel6->CFGR &= ~DMA_CFGR6_EN;
+				display_loop_step = DISPLAY_LOOP_STEP_SEND_END_FRAME;
+				goto process_again;
+			}
+		}
+		break;
+		case DISPLAY_LOOP_STEP_SEND_END_FRAME:
+			I2C1->CTLR1 |= I2C_CTLR1_STOP;
+
+			display_loop_step_expected_i2c_star1 = 0;
+			display_loop_step_expected_i2c_star2 = 0;
+			display_loop_step_next = display_loop_step_reset_i2c_on_error ? DISPLAY_LOOP_STEP_IDLE : DISPLAY_LOOP_STEP_SUCCESS;
+			display_loop_step_start_waiting_tick = SysTick->CNT;
+			display_loop_step_reset_i2c_on_error = 1;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
+		break;
+		case DISPLAY_LOOP_STEP_SUCCESS:
+			display_refresh_flag &= ~display_refresh_flag_processing;
+			display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+			goto process_again;
+		break;
+		case DISPLAY_LOOP_STEP_RESET_I2C:
+			I2C1->CTLR1 &= ~I2C_CTLR1_PE;
+			I2C1->CTLR1 |= I2C_CTLR1_PE;
+			display_refresh_flag |= DISPLAY_REFRESH_FLAG_INIT;
+			display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+			goto process_again;
+		break;
+	}
+}
+
+void display_clear(void) {
+	memset(display_data_buffer, 0, DISPLAY_DATA_SIZE);
+}
+
+void display_draw_16(uint16_t *image, uint8_t w, uint8_t x, uint8_t y, uint8_t flags) {
+	// TODO: place holder!
+	static uint32_t index = 0;
+	if((index/DISPLAY_WIDTH)%2 == 0) {
+		display_data_buffer[index%DISPLAY_WIDTH] = (index&0xFF) | (display_i2c_reset_performed ? 0xFFFF0000 : 0x00FF0000);
+	} else {
+		display_data_buffer[index%DISPLAY_WIDTH] = 0x00000000;
+	}
+	index++;
+}
+
+void display_init(void) {
+	RCC->APB1PCENR |= RCC_APB1Periph_I2C1;
+	RCC->APB2PCENR |= RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO;
+
+	// PC1 and PC2, 2Mhz output, open-drain alternative mode
+	#define DISPLAY_GPIO_PORT (GPIOC)
+	#define DISPLAY_CFGLR_FLAG ((GPIO_CFGLR_MODE1_1|GPIO_CFGLR_MODE2_1) | (GPIO_CFGLR_CNF1_0|GPIO_CFGLR_CNF1_1|GPIO_CFGLR_CNF2_0|GPIO_CFGLR_CNF2_1))
+	#define DISPLAY_CFGLR_MASK ((GPIO_CFGLR_MODE1|GPIO_CFGLR_MODE2) | (GPIO_CFGLR_CNF1|GPIO_CFGLR_CNF2))
+	DISPLAY_GPIO_PORT->CFGLR = (DISPLAY_GPIO_PORT->CFGLR & ~DISPLAY_CFGLR_MASK) | DISPLAY_CFGLR_FLAG;
+
+	// Set clock rate in standard I2C mode. Enable DMA mode. Enable ACK mode. Enable I2C
+	// The reference manual on I2C clock rate is terrible. I just followed whatever openwch does.
+	// Apparently I2C1->CKCFGR.CCR is some sort of clock divider, and the I2C1->CTLR2.FREQ doesn't do much
+	// See also: https://kiedontaa.blogspot.com/2024/04/the-confusing-i2c-bit-rate-register-of.html
+	#if (DISPLAY_I2C_CLOCKRATE > 100000)
+		// I2C fast mode
+		I2C1->CKCFGR = (FUNCONF_SYSTEM_CORE_CLOCK/(DISPLAY_I2C_CLOCKRATE*3))&I2C_CKCFGR_CCR | I2C_CKCFGR_FS;
+	#else
+		// I2C standard mode
+		I2C1->CKCFGR = (FUNCONF_SYSTEM_CORE_CLOCK/(DISPLAY_I2C_CLOCKRATE*2))&I2C_CKCFGR_CCR;
+	#endif
+	I2C1->CTLR2 = ((FUNCONF_SYSTEM_CORE_CLOCK/1000000)&I2C_CTLR2_FREQ) | I2C_CTLR2_DMAEN;
+	I2C1->CTLR1 = (I2C_CTLR1_ACK | I2C_CTLR1_PE); // Do I2C enable the last!
+
+	// DMA initialization
+	RCC->AHBPCENR |= RCC_DMA1EN;
+	DMA1_Channel6->CFGR = DMA_CFGR6_MINC | DMA_CFGR6_DIR; // increment memory, read from memory
+	DMA1_Channel6->PADDR = (uint32_t)(&I2C1->DATAR);
+
+	// Initialize state variables
+	display_refresh_flag = DISPLAY_REFRESH_FLAG_INIT;
+	display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+	display_clear();
+}
+
+void display_set_refresh_flag(void) {
+	display_refresh_flag |= DISPLAY_REFRESH_FLAG_GRAPHIC;
+}
