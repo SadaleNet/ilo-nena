@@ -110,11 +110,14 @@ enum display_loop_step {
 	DISPLAY_LOOP_STEP_WAIT_DMA,
 	DISPLAY_LOOP_STEP_SEND_END_FRAME,
 	DISPLAY_LOOP_STEP_SUCCESS,
-	DISPLAY_LOOP_STEP_RESET_I2C,
+	DISPLAY_LOOP_STEP_RESET_I2C_SETUP,
+	DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR,
+	DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH,
 };
 
 enum display_loop_step display_loop_step = DISPLAY_LOOP_STEP_IDLE;
 
+#define DISPLAY_WAIT_SCL_SEND_HIGH (FUNCONF_SYSTEM_CORE_CLOCK/DISPLAY_I2C_CLOCKRATE)
 #define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
 #define DISPLAY_FRAME_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
 #define DISPLAY_DMA_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms. It takes 48ms to transfer 530 bytes at 100kHz.
@@ -124,7 +127,29 @@ uint16_t display_loop_step_expected_i2c_star1;
 uint16_t display_loop_step_expected_i2c_star2;
 uint8_t display_loop_step_reset_i2c_on_error;
 
-uint8_t display_i2c_reset_performed = 0;
+// DISPLAY_CFGLR_FLAG: PC1 and PC2, 2Mhz output, open-drain alternative mode
+// DISPLAY_CFGLR_FLAG_I2C_RESET: Same as above except that PC1 (SDA) is floating input mode. For bitbanging I2C reset
+#define DISPLAY_GPIO_PORT (GPIOC)
+#define DISPLAY_CFGLR_FLAG ((GPIO_CFGLR_MODE1_1|GPIO_CFGLR_MODE2_1) | (GPIO_CFGLR_CNF1_0|GPIO_CFGLR_CNF1_1|GPIO_CFGLR_CNF2_0|GPIO_CFGLR_CNF2_1))
+#define DISPLAY_CFGLR_FLAG_I2C_RESET ((GPIO_CFGLR_MODE2_1) | (GPIO_CFGLR_CNF1_0|GPIO_CFGLR_CNF2_0))
+#define DISPLAY_CFGLR_MASK ((GPIO_CFGLR_MODE1|GPIO_CFGLR_MODE2) | (GPIO_CFGLR_CNF1|GPIO_CFGLR_CNF2))
+
+static void display_i2c_bus_init(void) {
+	DISPLAY_GPIO_PORT->CFGLR = (DISPLAY_GPIO_PORT->CFGLR & ~DISPLAY_CFGLR_MASK) | DISPLAY_CFGLR_FLAG;
+	// Set clock rate in standard I2C mode. Enable DMA mode. Enable ACK mode. Enable I2C
+	// The reference manual on I2C clock rate is terrible. I just followed whatever openwch does.
+	// Apparently I2C1->CKCFGR.CCR is some sort of clock divider, and the I2C1->CTLR2.FREQ doesn't do much
+	// See also: https://kiedontaa.blogspot.com/2024/04/the-confusing-i2c-bit-rate-register-of.html
+	#if (DISPLAY_I2C_CLOCKRATE > 100000)
+		// I2C fast mode
+		I2C1->CKCFGR = ((FUNCONF_SYSTEM_CORE_CLOCK/(DISPLAY_I2C_CLOCKRATE*3))&I2C_CKCFGR_CCR) | I2C_CKCFGR_FS;
+	#else
+		// I2C standard mode
+		I2C1->CKCFGR = (FUNCONF_SYSTEM_CORE_CLOCK/(DISPLAY_I2C_CLOCKRATE*2))&I2C_CKCFGR_CCR;
+	#endif
+	I2C1->CTLR2 = ((FUNCONF_SYSTEM_CORE_CLOCK/1000000)&I2C_CTLR2_FREQ) | I2C_CTLR2_DMAEN;
+	I2C1->CTLR1 = (I2C_CTLR1_ACK | I2C_CTLR1_PE); // Do I2C enable the last!
+}
 
 void display_loop(void)
 {
@@ -175,7 +200,7 @@ void display_loop(void)
 				if(!display_loop_step_reset_i2c_on_error) {
 					display_loop_step = DISPLAY_LOOP_STEP_SEND_END_FRAME;
 				} else {
-					display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C;
+					display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SETUP;
 				}
 				goto process_again;
 			}
@@ -185,7 +210,7 @@ void display_loop(void)
 				display_loop_step = DISPLAY_LOOP_STEP_SEND_START_FRAME;
 				goto process_again;
 			} else if (SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_BUS_IDLE_TIMEOUT) {
-				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C;
+				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SETUP;
 				goto process_again;
 			}
 		break;
@@ -221,6 +246,9 @@ void display_loop(void)
 				go_to_next_step = 1;
 			} else if ((DMA1->INTFR & DMA_TEIF6) ||
 				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_DMA_TIMEOUT) {
+				DMA1->INTFCR = DMA_CTEIF6;
+				// If the DMA couldn't be completed properly, I assume that the I2C bus is fucked up.
+				// Let's reset that I2C bus, just in case.
 				display_loop_step_reset_i2c_on_error = 1;
 				go_to_next_step = 1;
 			}
@@ -237,7 +265,7 @@ void display_loop(void)
 
 			display_loop_step_expected_i2c_star1 = 0;
 			display_loop_step_expected_i2c_star2 = 0;
-			display_loop_step_next = display_loop_step_reset_i2c_on_error ? DISPLAY_LOOP_STEP_IDLE : DISPLAY_LOOP_STEP_SUCCESS;
+			display_loop_step_next = display_loop_step_reset_i2c_on_error ? DISPLAY_LOOP_STEP_RESET_I2C_SETUP : DISPLAY_LOOP_STEP_SUCCESS;
 			display_loop_step_start_waiting_tick = SysTick->CNT;
 			display_loop_step_reset_i2c_on_error = 1;
 			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
@@ -247,12 +275,40 @@ void display_loop(void)
 			display_loop_step = DISPLAY_LOOP_STEP_IDLE;
 			goto process_again;
 		break;
-		case DISPLAY_LOOP_STEP_RESET_I2C:
-			I2C1->CTLR1 &= ~I2C_CTLR1_PE;
-			I2C1->CTLR1 |= I2C_CTLR1_PE;
-			display_refresh_flag |= DISPLAY_REFRESH_FLAG_INIT;
-			display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+		case DISPLAY_LOOP_STEP_RESET_I2C_SETUP:
+			DISPLAY_GPIO_PORT->CFGLR = (DISPLAY_GPIO_PORT->CFGLR & ~DISPLAY_CFGLR_MASK) | DISPLAY_CFGLR_FLAG_I2C_RESET;
+			// DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BS1; // SDA high (implicit because on-bus pull-up. Do not set. This pin is in input mode)
+			DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BS2; // SCL high
+			display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR;
 			goto process_again;
+		break;
+		case DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR:
+			// Send pulses of SCL until the I2C line isn't busy anymore
+			if((DISPLAY_GPIO_PORT->INDR & GPIO_INDR_IDR1) == 0) { // Check SDA status
+				DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BR2; // SCL low
+				display_loop_step_start_waiting_tick = SysTick->CNT;
+				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH;
+			} else {
+				// Great! With the the pulses sent, now that the error's gone!
+				// Reset I2C peripheral
+				I2C1->CTLR1 |= I2C_CTLR1_SWRST;
+				I2C1->CTLR1 &= ~I2C_CTLR1_SWRST;
+				// Configure I2C peripheral again after resetting
+				// Also configure GPIO
+				display_i2c_bus_init();
+				// Resend the init sequence for the OLED
+				display_refresh_flag |= DISPLAY_REFRESH_FLAG_INIT;
+				display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+				goto process_again;
+			}
+		break;
+		case DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH:
+			// Wait for the time to send the next clock, then set SCL high
+			if(SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_SCL_SEND_HIGH) {
+				DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BS2; // SCL high
+				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR;
+				goto process_again;
+			}
 		break;
 	}
 }
@@ -265,7 +321,7 @@ void display_draw_16(uint16_t *image, uint8_t w, uint8_t x, uint8_t y, uint8_t f
 	// TODO: place holder!
 	static uint32_t index = 0;
 	if((index/DISPLAY_WIDTH)%2 == 0) {
-		display_data_buffer[index%DISPLAY_WIDTH] = (index&0xFF) | (display_i2c_reset_performed ? 0xFFFF0000 : 0x00FF0000);
+		display_data_buffer[index%DISPLAY_WIDTH] = (index&0xFF) | 0x00FF0000;
 	} else {
 		display_data_buffer[index%DISPLAY_WIDTH] = 0x00000000;
 	}
@@ -276,25 +332,7 @@ void display_init(void) {
 	RCC->APB1PCENR |= RCC_APB1Periph_I2C1;
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO;
 
-	// PC1 and PC2, 2Mhz output, open-drain alternative mode
-	#define DISPLAY_GPIO_PORT (GPIOC)
-	#define DISPLAY_CFGLR_FLAG ((GPIO_CFGLR_MODE1_1|GPIO_CFGLR_MODE2_1) | (GPIO_CFGLR_CNF1_0|GPIO_CFGLR_CNF1_1|GPIO_CFGLR_CNF2_0|GPIO_CFGLR_CNF2_1))
-	#define DISPLAY_CFGLR_MASK ((GPIO_CFGLR_MODE1|GPIO_CFGLR_MODE2) | (GPIO_CFGLR_CNF1|GPIO_CFGLR_CNF2))
-	DISPLAY_GPIO_PORT->CFGLR = (DISPLAY_GPIO_PORT->CFGLR & ~DISPLAY_CFGLR_MASK) | DISPLAY_CFGLR_FLAG;
-
-	// Set clock rate in standard I2C mode. Enable DMA mode. Enable ACK mode. Enable I2C
-	// The reference manual on I2C clock rate is terrible. I just followed whatever openwch does.
-	// Apparently I2C1->CKCFGR.CCR is some sort of clock divider, and the I2C1->CTLR2.FREQ doesn't do much
-	// See also: https://kiedontaa.blogspot.com/2024/04/the-confusing-i2c-bit-rate-register-of.html
-	#if (DISPLAY_I2C_CLOCKRATE > 100000)
-		// I2C fast mode
-		I2C1->CKCFGR = (FUNCONF_SYSTEM_CORE_CLOCK/(DISPLAY_I2C_CLOCKRATE*3))&I2C_CKCFGR_CCR | I2C_CKCFGR_FS;
-	#else
-		// I2C standard mode
-		I2C1->CKCFGR = (FUNCONF_SYSTEM_CORE_CLOCK/(DISPLAY_I2C_CLOCKRATE*2))&I2C_CKCFGR_CCR;
-	#endif
-	I2C1->CTLR2 = ((FUNCONF_SYSTEM_CORE_CLOCK/1000000)&I2C_CTLR2_FREQ) | I2C_CTLR2_DMAEN;
-	I2C1->CTLR1 = (I2C_CTLR1_ACK | I2C_CTLR1_PE); // Do I2C enable the last!
+	display_i2c_bus_init();
 
 	// DMA initialization
 	RCC->AHBPCENR |= RCC_DMA1EN;
