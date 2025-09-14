@@ -49,6 +49,11 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 	}
 }
 
+static uint16_t test_image[] = {
+	0xFFFF, 0xFFFF, 0xC003, 0xC003,
+	0xC003, 0xC003, 0xFFFF, 0xFFFF
+};
+
 int main() {
 	SystemInit();
 
@@ -76,11 +81,14 @@ int main() {
 			key_to_be_sent = HID_KEY_NONE;
 		}
 
-		// Update graphic every 30ms. TODO: remove. It's just a piece of code for testing the display
-		if(SysTick->CNT - last_update_tick >= FUNCONF_SYSTEM_CORE_CLOCK/1000 * 30) {
+		// Update graphic every 100ms. TODO: remove. It's just a piece of code for testing the display
+		if(SysTick->CNT - last_update_tick >= FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) {
+			static int32_t index = 0;
 			last_update_tick = SysTick->CNT;
-			display_draw_16(NULL, 0, 0, 0, 0);
+			display_clear();
+			display_draw_16(test_image, sizeof(test_image)/sizeof(*test_image), index%(128+8)-8, index%48-16, index%4 | index%2);
 			display_set_refresh_flag();
+			index++;
 		}
 
 		display_loop();

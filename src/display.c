@@ -24,6 +24,7 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "display.h"
 #include "ch32fun.h"
 #include <stdlib.h>
 
@@ -49,7 +50,6 @@ const uint8_t display_init_array[] =
 };
 
 
-#define DISPLAY_WIDTH (128)
 #define DISPLAY_DATA_COMMAND_SIZE (20)
 #define DISPLAY_DATA_SIZE (DISPLAY_WIDTH*4)
 static uint8_t display_data_array[DISPLAY_DATA_COMMAND_SIZE+DISPLAY_DATA_SIZE] = {
@@ -317,15 +317,34 @@ void display_clear(void) {
 	memset(display_data_buffer, 0, DISPLAY_DATA_SIZE);
 }
 
-void display_draw_16(uint16_t *image, uint8_t w, uint8_t x, uint8_t y, uint8_t flags) {
-	// TODO: place holder!
-	static uint32_t index = 0;
-	if((index/DISPLAY_WIDTH)%2 == 0) {
-		display_data_buffer[index%DISPLAY_WIDTH] = (index&0xFF) | 0x00FF0000;
-	} else {
-		display_data_buffer[index%DISPLAY_WIDTH] = 0x00000000;
+void display_draw_16(const uint16_t *image, uint8_t w, int32_t x, int32_t y, uint8_t flags) {
+	if(flags & DISPLAY_DRAW_FLAG_SCALE_2x) {
+		w *= 2;
 	}
-	index++;
+	for(int32_t i=0; i<w; i++) {
+		if(x+i >= DISPLAY_WIDTH) {
+			break;
+		} else if(x+i < 0) {
+			continue;
+		}
+		size_t image_index = (flags & DISPLAY_DRAW_FLAG_SCALE_2x) ? i/2 : i;
+		uint32_t image_to_be_shown = (flags & DISPLAY_DRAW_FLAG_INVERT) ? (uint16_t)~image[image_index] : image[image_index];
+		if(flags & DISPLAY_DRAW_FLAG_SCALE_2x) {
+			uint32_t image_original = image_to_be_shown;
+			image_to_be_shown = 0;
+			for(size_t j=0; j<16; j++) {
+				if(image_original & (1 << j)) {
+					image_to_be_shown |= 0x03 << (j*2);
+				}
+			}
+		}
+
+		if(y > 0) {
+			display_data_buffer[x+i] |= image_to_be_shown << y;
+		} else {
+			display_data_buffer[x+i] |= image_to_be_shown >> -y;
+		}
+	}
 }
 
 void display_init(void) {
