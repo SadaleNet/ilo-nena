@@ -30,6 +30,7 @@
 
 #define DISPLAY_I2C_ADDR (0x3C)
 #define DISPLAY_I2C_CLOCKRATE (100000) // SSD1306 supports up to 400kHz
+#define DISPLAY_I2C_ERROR_FLAGS (I2C_STAR1_PECERR|I2C_STAR1_OVR|I2C_STAR1_AF|I2C_STAR1_ARLO|I2C_STAR1_BERR)
 
 // Adapted from the sequence in the appendix of the SSD1306 specs
 const uint8_t display_init_array[] =
@@ -168,8 +169,10 @@ void display_loop(void)
 					display_refresh_flag_processing = DISPLAY_REFRESH_FLAG_GRAPHIC;
 				}
 
-				// Clear error flags
-				I2C1->STAR1 &= ~(I2C_STAR1_PECERR|I2C_STAR1_OVR|I2C_STAR1_AF|I2C_STAR1_ARLO|I2C_STAR1_BERR);
+				// Clear I2C error flags
+				// The reason to clear it here is that, the error flags can get triggered in any moment in the loop
+				// By clearing it at the beginning of the transfer, we make sure that the flags always get cleared upon retry.
+				I2C1->STAR1 &= ~DISPLAY_I2C_ERROR_FLAGS;
 				DMA1->INTFCR = DMA_CTEIF6;
 
 				display_loop_step_reset_i2c_on_error = 0;
@@ -182,20 +185,21 @@ void display_loop(void)
 			// Rationale not to use interrupt for handling completion of sending I2C frame:
 			// Reason 1:
 			// CH32V003 Only support two level of interrupt preemption.
-			// The Software USB interrupt takes one, the button keyscan timer takes another one.
-			// If I have an additional interrupt, it can make Software USB's interrupt unable to get triggered.
-			// I would need some clever overengineered mechanism to workaround that, which isn't worth the benefit.
+			// The I2C event flags are complicated. It might require multiple interrupt triggers to
+			// reach the desired event flags
 			// Reason 2:
+			// I2C/DMA interrupt events doesn't handle timeout. I'd need a timer for that, which isn't worth it.
+			// Reason 3:
 			// In this project, I don't intend to refresh the display often so the rate that
 			// the I2C communication mechanism get triggered is rare, making performance less important
-			// Reason 3:
+			// Reason 4:
 			// The I2C communication is just output only. Extra delay by polling won't hurt much.
 
 			// Must read STAR1 first, then read STAR2. Otherwise STAR2.ADDR won't get reset by hardware
 			if(I2C1->STAR1 == display_loop_step_expected_i2c_star1 && I2C1->STAR2 == display_loop_step_expected_i2c_star2) {
 				display_loop_step = display_loop_step_next;
 				goto process_again;
-			} else if (I2C1->STAR1 & (I2C_STAR1_PECERR|I2C_STAR1_OVR|I2C_STAR1_AF|I2C_STAR1_ARLO|I2C_STAR1_BERR) ||
+			} else if ((I2C1->STAR1 & DISPLAY_I2C_ERROR_FLAGS) ||
 				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_FRAME_TIMEOUT) {
 				if(!display_loop_step_reset_i2c_on_error) {
 					display_loop_step = DISPLAY_LOOP_STEP_SEND_END_FRAME;
@@ -246,7 +250,6 @@ void display_loop(void)
 				go_to_next_step = 1;
 			} else if ((DMA1->INTFR & DMA_TEIF6) ||
 				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_DMA_TIMEOUT) {
-				DMA1->INTFCR = DMA_CTEIF6;
 				// If the DMA couldn't be completed properly, I assume that the I2C bus is fucked up.
 				// Let's reset that I2C bus, just in case.
 				display_loop_step_reset_i2c_on_error = 1;
