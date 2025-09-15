@@ -237,7 +237,6 @@ void display_loop(void)
 			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
 		break;
 		case DISPLAY_LOOP_STEP_SEND_DATA_DMA:
-			DMA1_Channel6->CNTR = sizeof(display_data_array)-(display_data_dma_start_address-display_data_array);
 			DMA1_Channel6->CFGR |= DMA_CFGR6_EN;
 			display_loop_step_start_waiting_tick = SysTick->CNT;
 			display_loop_step = DISPLAY_LOOP_STEP_WAIT_DMA;
