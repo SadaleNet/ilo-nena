@@ -71,7 +71,7 @@ const static uint32_t BUTTON_ROW_INDR_MASK_MAP[] = {GPIO_INDR_IDR7, GPIO_INDR_ID
 const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_INDR_IDR2};
 #define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
 
-volatile uint32_t button_state = 0;
+uint32_t button_state = 0;
 
 void button_init(void) {
 	// Initialize the state variable(s)
@@ -176,6 +176,7 @@ uint32_t button_get_state(void) {
 	// because it takes less cycles to do so
 	// and the duration that the interrupt turned off is short enough
 	__disable_irq();
+	asm volatile ("fence" ::: "memory");
 	uint32_t ret = button_state;
 	__enable_irq();
 	return ret;
