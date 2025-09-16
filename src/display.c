@@ -117,7 +117,7 @@ enum display_loop_step {
 	DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH,
 };
 
-#define DISPLAY_WAIT_SCL_SEND_HIGH (FUNCONF_SYSTEM_CORE_CLOCK/DISPLAY_I2C_CLOCKRATE)
+#define DISPLAY_WAIT_SCL_FOR_I2C_RESET (FUNCONF_SYSTEM_CORE_CLOCK/DISPLAY_I2C_CLOCKRATE)
 #define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
 #define DISPLAY_FRAME_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
 #define DISPLAY_DMA_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms. It takes 48ms to transfer 530 bytes at 100kHz.
@@ -284,35 +284,37 @@ void display_loop(void)
 			DISPLAY_GPIO_PORT->CFGLR = (DISPLAY_GPIO_PORT->CFGLR & ~DISPLAY_CFGLR_MASK) | DISPLAY_CFGLR_FLAG_I2C_RESET;
 			// DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BS1; // SDA high (implicit because on-bus pull-up. Do not set. This pin is in input mode)
 			DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BS2; // SCL high
+			display_loop_step_start_waiting_tick = SysTick->CNT;
 			display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR;
-			goto process_again;
 		break;
 		case DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR:
 			// Send pulses of SCL until the I2C line isn't busy anymore
-			if((DISPLAY_GPIO_PORT->INDR & GPIO_INDR_IDR1) == 0) { // Check SDA status
-				DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BR2; // SCL low
-				display_loop_step_start_waiting_tick = SysTick->CNT;
-				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH;
-			} else {
-				// Great! With the the pulses sent, now that the error's gone!
-				// Reset I2C peripheral
-				I2C1->CTLR1 |= I2C_CTLR1_SWRST;
-				I2C1->CTLR1 &= ~I2C_CTLR1_SWRST;
-				// Configure I2C peripheral again after resetting
-				// Also configure GPIO
-				display_i2c_bus_init();
-				// Resend the init sequence for the OLED
-				display_refresh_flag |= DISPLAY_REFRESH_FLAG_INIT;
-				display_loop_step = DISPLAY_LOOP_STEP_IDLE;
-				goto process_again;
+			if(SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_SCL_FOR_I2C_RESET) {
+				if((DISPLAY_GPIO_PORT->INDR & GPIO_INDR_IDR1) == 0) { // Check SDA status
+					DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BR2; // SCL low
+					display_loop_step_start_waiting_tick = SysTick->CNT;
+					display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH;
+				} else {
+					// Great! With the the pulses sent, now that the error's gone!
+					// Reset I2C peripheral
+					I2C1->CTLR1 |= I2C_CTLR1_SWRST;
+					I2C1->CTLR1 &= ~I2C_CTLR1_SWRST;
+					// Configure I2C peripheral again after resetting
+					// Also configure GPIO
+					display_i2c_bus_init();
+					// Resend the init sequence for the OLED
+					display_refresh_flag |= DISPLAY_REFRESH_FLAG_INIT;
+					display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+					goto process_again;
+				}
 			}
 		break;
 		case DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH:
 			// Wait for the time to send the next clock, then set SCL high
-			if(SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_SCL_SEND_HIGH) {
+			if(SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_SCL_FOR_I2C_RESET) {
 				DISPLAY_GPIO_PORT->BSHR = GPIO_BSHR_BS2; // SCL high
+				display_loop_step_start_waiting_tick = SysTick->CNT;
 				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR;
-				goto process_again;
 			}
 		break;
 	}
