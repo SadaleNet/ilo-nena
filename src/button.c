@@ -26,7 +26,6 @@
 
 #include "ch32fun.h"
 
-#define BUTTON_SCAN_INTERVAL_US (1000) // The interval between scaning one column and the next column
 // Number of debounces required for the button state recorded as pressed/released
 // The debounce state is initialized as zero, incremented if a press is detected, decremented else.
 // The state is capped at [-BUTTON_DEBOUNCE_THRESHOLD, BUTTON_DEBOUNCE_THRESHOLD]
@@ -71,7 +70,7 @@ const static uint32_t BUTTON_ROW_INDR_MASK_MAP[] = {GPIO_INDR_IDR7, GPIO_INDR_ID
 const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_INDR_IDR2};
 #define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
 
-uint32_t button_state = 0;
+uint32_t button_state = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_state()
 
 void button_init(void) {
 	// Initialize the state variable(s)
@@ -92,21 +91,6 @@ void button_init(void) {
 	// Configure dedicated button as input, pull-up
 	BUTTON_DEDICATED_GPIO_PORT->CFGLR = (BUTTON_DEDICATED_GPIO_PORT->CFGLR & ~BUTTON_DEDICATED_CFGLR_MASK) | BUTTON_DEDICATED_CFGLR_FLAG;
 	BUTTON_DEDICATED_GPIO_PORT->BSHR = BUTTON_DEDICATED_BSHR_FLAG;
-
-	// Enable clock for TIM2
-	RCC->APB1PCENR |= RCC_TIM2EN;
-	// Enble interrupt when update flag is active
-	TIM2->DMAINTENR = TIM_UIE;
-	// Set timer interval
-	// Example (FUNCONF_SYSTEM_CORE_CLOCK=48000000, BUTTON_SCAN_INTERVAL_US=1000): 48000000/48/1000 = 1000Hz
-	TIM2->PSC = (FUNCONF_SYSTEM_CORE_CLOCK/1000000-1);
-	TIM2->ATRLR = (BUTTON_SCAN_INTERVAL_US-1);
-	// Single-shot mode, only set update flag when the timer overflows. Also start timer!
-	TIM2->CTLR1 = TIM_OPM | TIM_URS | TIM_CEN;
-
-	// PFIC: For TIM2_IRQHandler, enable preemption for the interrupt. Also enable the interrupt.
-	PFIC->IPRIOR[TIM2_IRQn] = 0x80;
-	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
 }
 
 static uint32_t button_handle_debounce(uint8_t reading, uint32_t state, int8_t debounce[], size_t index) {
@@ -127,6 +111,7 @@ static uint32_t button_handle_debounce(uint8_t reading, uint32_t state, int8_t d
 }
 
 void button_loop(void) {
+	asm volatile ("" ::: "memory");
 	static size_t button_scan_column = 0;
 	// positive is pressed count, negative is released count
 	static int8_t button_debounce[BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT] = {0};
@@ -157,27 +142,7 @@ void button_loop(void) {
 	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_scan_column];
 }
 
-void INTERRUPT_DECORATOR TIM2_IRQHandler(void) {
-	// For performance, we just set the interrupt flags to zero. We're not gonna use TIM2 interrupt flags for anything else anyway
-	// TIM2->INTFR &= TIM_UIF;
-	TIM2->INTFR = 0;
-	button_loop();
-
-	// Start the timer again. This is required because we're in single-shot mode.
-	// Purpose of using single-shot mode:
-	// We set the keyscan column output, then we must wait for a delay, then we read the row input in next timer interrupt.
-	// If we use continuous mode instead of single-shot, in case a higher priority interrupt preempted and takes a long time,
-	// our current timer interrupt would get triggered again right after it ended, which would eliminate the required delay
-	TIM2->CTLR1 |= TIM_CEN;
-}
-
 uint32_t button_get_state(void) {
-	// Disable global interrupt instead of just TIM2 interrupt
-	// because it takes less cycles to do so
-	// and the duration that the interrupt turned off is short enough
-	__disable_irq();
-	asm volatile ("fence" ::: "memory");
-	uint32_t ret = button_state;
-	__enable_irq();
-	return ret;
+	asm volatile ("" ::: "memory");
+	return button_state;
 }

@@ -24,20 +24,4 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdint.h>
-
-void display_init(void);
-void display_loop(void);
-
-
-#define DISPLAY_WIDTH (128)
-
-#define DISPLAY_DRAW_FLAG_INVERT (1U<<0)
-#define DISPLAY_DRAW_FLAG_SCALE_2x (1U<<1)
-#define DISPLAY_DRAW_FLAG_OR_RENDER (1U<<2)
-
-void display_clear(void);
-// Uses 32bit integer for locations to avoid arithematic overflow
-void display_draw_16(const uint16_t *image, uint8_t w, int32_t x, int32_t y, uint8_t flags);
-void display_set_refresh_flag(void); // The display would be updated in the loop() handler
-uint8_t display_is_idle(void);
+void tim2_task_init(void);

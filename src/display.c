@@ -33,7 +33,7 @@
 #define DISPLAY_I2C_ERROR_FLAGS (I2C_STAR1_PECERR|I2C_STAR1_OVR|I2C_STAR1_AF|I2C_STAR1_ARLO|I2C_STAR1_BERR)
 
 // Adapted from the sequence in the appendix of the SSD1306 specs
-const uint8_t display_init_array[] =
+const static uint8_t display_init_array[] =
 {
 	0x00, // Control byte: the following bytes are to be treated as commands
 	0xA8, 0x3F, // Set MUX ratio to 64MUX (0b111111)
@@ -53,6 +53,8 @@ const uint8_t display_init_array[] =
 
 #define DISPLAY_DATA_COMMAND_SIZE (20)
 #define DISPLAY_DATA_SIZE (DISPLAY_WIDTH*4)
+
+// CONCURRENCY_VARIABLE: read by display_loop() via TIM2 ISR, written by display_clear() / display_draw_*()
 static uint8_t display_data_array[DISPLAY_DATA_COMMAND_SIZE+DISPLAY_DATA_SIZE] = {
 	0x00, 0x00, 0x00, // Padding to make the graphc RAM area align with uint32_t
 	0x80, 0x20, 0x80, 0x21, // Set memory addressing mode (Vertical addressing mode)
@@ -98,8 +100,7 @@ static uint32_t *const display_data_buffer = (uint32_t*)&display_data_array[20];
 
 #define DISPLAY_REFRESH_FLAG_INIT (1U<<0)
 #define DISPLAY_REFRESH_FLAG_GRAPHIC (1U<<1)
-uint8_t display_refresh_flag = 0;
-uint8_t display_refresh_flag_processing = 0;
+uint8_t display_refresh_flag = 0; // CONCURRENCY_VARIABLE: written/read by display_loop() via TIM2 ISR, written/read by display_set_refresh_flag() / display_is_idle()
 
 enum display_loop_step {
 	DISPLAY_LOOP_STEP_IDLE,
@@ -116,17 +117,10 @@ enum display_loop_step {
 	DISPLAY_LOOP_STEP_RESET_I2C_SCL_HIGH,
 };
 
-enum display_loop_step display_loop_step = DISPLAY_LOOP_STEP_IDLE;
-
 #define DISPLAY_WAIT_SCL_SEND_HIGH (FUNCONF_SYSTEM_CORE_CLOCK/DISPLAY_I2C_CLOCKRATE)
 #define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
 #define DISPLAY_FRAME_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
 #define DISPLAY_DMA_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms. It takes 48ms to transfer 530 bytes at 100kHz.
-enum display_loop_step display_loop_step_next;
-uint32_t display_loop_step_start_waiting_tick;
-uint16_t display_loop_step_expected_i2c_star1;
-uint16_t display_loop_step_expected_i2c_star2;
-uint8_t display_loop_step_reset_i2c_on_error;
 
 // DISPLAY_CFGLR_FLAG: PC1 and PC2, 2Mhz output, open-drain alternative mode
 // DISPLAY_CFGLR_FLAG_I2C_RESET: Same as above except that PC1 (SDA) is floating input mode. For bitbanging I2C reset
@@ -154,6 +148,15 @@ static void display_i2c_bus_init(void) {
 
 void display_loop(void)
 {
+	asm volatile ("" ::: "memory");
+	static enum display_loop_step display_loop_step = DISPLAY_LOOP_STEP_IDLE;
+	static enum display_loop_step display_loop_step_next;
+	static uint32_t display_loop_step_start_waiting_tick;
+	static uint16_t display_loop_step_expected_i2c_star1;
+	static uint16_t display_loop_step_expected_i2c_star2;
+	static uint8_t display_loop_step_reset_i2c_on_error;
+	static uint8_t display_refresh_flag_processing;
+
 	// Haters gonna hate. Using goto label here makes the code much cleaner than using do-while.
 	process_again:
 	switch(display_loop_step) {
@@ -169,8 +172,8 @@ void display_loop(void)
 					display_refresh_flag_processing = DISPLAY_REFRESH_FLAG_GRAPHIC;
 				}
 
-				// Clear I2C error flags
-				// The reason to clear it here is that, the error flags can get triggered in any moment in the loop
+				// Clear I2C error flags and DMA error flag
+				// The reason to clear it here is that, the error flags can get triggered in any moment
 				// By clearing it at the beginning of the transfer, we make sure that the flags always get cleared upon retry.
 				I2C1->STAR1 &= ~DISPLAY_I2C_ERROR_FLAGS;
 				DMA1->INTFCR = DMA_CTEIF6;
@@ -362,10 +365,21 @@ void display_init(void) {
 
 	// Initialize state variables
 	display_refresh_flag = DISPLAY_REFRESH_FLAG_INIT;
-	display_loop_step = DISPLAY_LOOP_STEP_IDLE;
 	display_clear();
 }
 
 void display_set_refresh_flag(void) {
+	// Make sure that the display_data_buffer changes are written and would be seen by the DMAs
+	asm volatile("fence ow,ow");
+
+	// Not sure if the write operation is atomic. Disabling interrupts just in case.
+	__disable_irq();
+	asm volatile ("" ::: "memory");
 	display_refresh_flag |= DISPLAY_REFRESH_FLAG_GRAPHIC;
+	__enable_irq();
+}
+
+uint8_t display_is_idle(void) {
+	asm volatile ("" ::: "memory");
+	return !display_refresh_flag;
 }

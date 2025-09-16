@@ -26,6 +26,7 @@
 
 #include "button.h"
 #include "display.h"
+#include "tim2_task.h"
 
 #include "ch32fun.h"
 #include "rv003usb.h"
@@ -65,6 +66,7 @@ int main() {
 
 	button_init();
 	display_init();
+	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
 	uint32_t last_update_tick = SysTick->CNT;
 	while(1) {
@@ -90,9 +92,5 @@ int main() {
 			display_set_refresh_flag();
 			index++;
 		}
-
-		display_loop();
-
-		Delay_Ms(1);
 	}
 }
