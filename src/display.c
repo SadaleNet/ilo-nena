@@ -104,13 +104,13 @@ uint8_t display_refresh_flag = 0; // CONCURRENCY_VARIABLE: written/read by displ
 
 enum display_loop_step {
 	DISPLAY_LOOP_STEP_IDLE,
-	DISPLAY_LOOP_STEP_WAIT_FRAME, // common wait state shared by many SEND_ states
+	DISPLAY_LOOP_STEP_WAIT_TRANSFER, // common wait state shared by many SEND_ states
 	DISPLAY_LOOP_STEP_WAIT_BUS_IDLE,
-	DISPLAY_LOOP_STEP_SEND_START_FRAME,
+	DISPLAY_LOOP_STEP_SEND_START_BIT,
 	DISPLAY_LOOP_STEP_SEND_ADDRESS,
 	DISPLAY_LOOP_STEP_SEND_DATA_DMA,
 	DISPLAY_LOOP_STEP_WAIT_DMA,
-	DISPLAY_LOOP_STEP_SEND_END_FRAME,
+	DISPLAY_LOOP_STEP_SEND_END_BIT,
 	DISPLAY_LOOP_STEP_SUCCESS,
 	DISPLAY_LOOP_STEP_RESET_I2C_SETUP,
 	DISPLAY_LOOP_STEP_RESET_I2C_CHECK_ERROR,
@@ -119,7 +119,7 @@ enum display_loop_step {
 
 #define DISPLAY_WAIT_SCL_FOR_I2C_RESET (FUNCONF_SYSTEM_CORE_CLOCK/DISPLAY_I2C_CLOCKRATE)
 #define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
-#define DISPLAY_FRAME_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
+#define DISPLAY_TRANSFER_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms. For start bit, address and stop bit.
 #define DISPLAY_DMA_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms. It takes 48ms to transfer 530 bytes at 100kHz.
 
 // DISPLAY_CFGLR_FLAG: PC1 and PC2, 2Mhz output, open-drain alternative mode
@@ -184,28 +184,26 @@ void display_loop(void)
 				goto process_again;
 			}
 		break;
-		case DISPLAY_LOOP_STEP_WAIT_FRAME:
-			// Rationale not to use interrupt for handling completion of sending I2C frame:
+		case DISPLAY_LOOP_STEP_WAIT_TRANSFER:
+			// Rationale not to use interrupt for handling completion of sending I2C start bit, address and stop bit:
 			// Reason 1:
-			// CH32V003 Only support two level of interrupt preemption.
 			// The I2C event flags are complicated. It might require multiple interrupt triggers to
-			// reach the desired event flags
+			// reach the desired event flags, making it not worth it performane-wise.
 			// Reason 2:
-			// I2C/DMA interrupt events doesn't handle timeout. I'd need a timer for that, which isn't worth it.
+			// I2C/DMA interrupt events doesn't have timeout handling. I'd need a timer for that, which isn't worth it.
 			// Reason 3:
 			// In this project, I don't intend to refresh the display often so the rate that
 			// the I2C communication mechanism get triggered is rare, making performance less important
-			// Reason 4:
-			// The I2C communication is just output only. Extra delay by polling won't hurt much.
 
 			// Must read STAR1 first, then read STAR2. Otherwise STAR2.ADDR won't get reset by hardware
 			if(I2C1->STAR1 == display_loop_step_expected_i2c_star1 && I2C1->STAR2 == display_loop_step_expected_i2c_star2) {
 				display_loop_step = display_loop_step_next;
 				goto process_again;
 			} else if ((I2C1->STAR1 & DISPLAY_I2C_ERROR_FLAGS) ||
-				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_FRAME_TIMEOUT) {
+				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_TRANSFER_TIMEOUT) {
+				// First attempt to recover by sending an I2C end bit. If that failed, perform I2C bus reset.
 				if(!display_loop_step_reset_i2c_on_error) {
-					display_loop_step = DISPLAY_LOOP_STEP_SEND_END_FRAME;
+					display_loop_step = DISPLAY_LOOP_STEP_SEND_END_BIT;
 				} else {
 					display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SETUP;
 				}
@@ -214,21 +212,21 @@ void display_loop(void)
 		break;
 		case DISPLAY_LOOP_STEP_WAIT_BUS_IDLE:
 			if(!(I2C1->STAR2 & I2C_STAR2_BUSY)) {
-				display_loop_step = DISPLAY_LOOP_STEP_SEND_START_FRAME;
+				display_loop_step = DISPLAY_LOOP_STEP_SEND_START_BIT;
 				goto process_again;
 			} else if (SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_WAIT_BUS_IDLE_TIMEOUT) {
 				display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SETUP;
 				goto process_again;
 			}
 		break;
-		case DISPLAY_LOOP_STEP_SEND_START_FRAME:
+		case DISPLAY_LOOP_STEP_SEND_START_BIT:
 			I2C1->CTLR1 |= I2C_CTLR1_START;
 
 			display_loop_step_expected_i2c_star1 = I2C_STAR1_SB;
 			display_loop_step_expected_i2c_star2 = I2C_STAR2_MSL|I2C_STAR2_BUSY;
 			display_loop_step_next = DISPLAY_LOOP_STEP_SEND_ADDRESS;
 			display_loop_step_start_waiting_tick = SysTick->CNT;
-			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_TRANSFER;
 		break;
 		case DISPLAY_LOOP_STEP_SEND_ADDRESS:
 			I2C1->DATAR = DISPLAY_I2C_ADDR<<1;
@@ -237,7 +235,7 @@ void display_loop(void)
 			display_loop_step_expected_i2c_star2 = I2C_STAR2_MSL|I2C_STAR2_BUSY|I2C_STAR2_TRA;
 			display_loop_step_next = DISPLAY_LOOP_STEP_SEND_DATA_DMA;
 			display_loop_step_start_waiting_tick = SysTick->CNT;
-			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_TRANSFER;
 		break;
 		case DISPLAY_LOOP_STEP_SEND_DATA_DMA:
 			DMA1_Channel6->CFGR |= DMA_CFGR6_EN;
@@ -260,12 +258,12 @@ void display_loop(void)
 
 			if(go_to_next_step) {
 				DMA1_Channel6->CFGR &= ~DMA_CFGR6_EN;
-				display_loop_step = DISPLAY_LOOP_STEP_SEND_END_FRAME;
+				display_loop_step = DISPLAY_LOOP_STEP_SEND_END_BIT;
 				goto process_again;
 			}
 		}
 		break;
-		case DISPLAY_LOOP_STEP_SEND_END_FRAME:
+		case DISPLAY_LOOP_STEP_SEND_END_BIT:
 			I2C1->CTLR1 |= I2C_CTLR1_STOP;
 
 			display_loop_step_expected_i2c_star1 = 0;
@@ -273,7 +271,7 @@ void display_loop(void)
 			display_loop_step_next = display_loop_step_reset_i2c_on_error ? DISPLAY_LOOP_STEP_RESET_I2C_SETUP : DISPLAY_LOOP_STEP_SUCCESS;
 			display_loop_step_start_waiting_tick = SysTick->CNT;
 			display_loop_step_reset_i2c_on_error = 1;
-			display_loop_step = DISPLAY_LOOP_STEP_WAIT_FRAME;
+			display_loop_step = DISPLAY_LOOP_STEP_WAIT_TRANSFER;
 		break;
 		case DISPLAY_LOOP_STEP_SUCCESS:
 			display_refresh_flag &= ~display_refresh_flag_processing;
