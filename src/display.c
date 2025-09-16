@@ -118,8 +118,8 @@ enum display_loop_step {
 };
 
 #define DISPLAY_WAIT_SCL_FOR_I2C_RESET (FUNCONF_SYSTEM_CORE_CLOCK/DISPLAY_I2C_CLOCKRATE)
-#define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms
-#define DISPLAY_TRANSFER_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000) // 1ms. For start bit, address and stop bit.
+#define DISPLAY_WAIT_BUS_IDLE_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 *3) // 3ms
+#define DISPLAY_TRANSFER_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 *3) // 3ms. For start bit, address and stop bit.
 #define DISPLAY_DMA_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms. It takes 48ms to transfer 530 bytes at 100kHz.
 
 // DISPLAY_CFGLR_FLAG: PC1 and PC2, 2Mhz output, open-drain alternative mode
@@ -185,6 +185,7 @@ void display_loop(void)
 			}
 		break;
 		case DISPLAY_LOOP_STEP_WAIT_TRANSFER:
+		{
 			// Rationale not to use interrupt for handling completion of sending I2C start bit, address and stop bit:
 			// Reason 1:
 			// The I2C event flags are complicated. It might require multiple interrupt triggers to
@@ -196,10 +197,10 @@ void display_loop(void)
 			// the I2C communication mechanism get triggered is rare, making performance less important
 
 			// Must read STAR1 first, then read STAR2. Otherwise STAR2.ADDR won't get reset by hardware
-			if(I2C1->STAR1 == display_loop_step_expected_i2c_star1 && I2C1->STAR2 == display_loop_step_expected_i2c_star2) {
-				display_loop_step = display_loop_step_next;
-				goto process_again;
-			} else if ((I2C1->STAR1 & DISPLAY_I2C_ERROR_FLAGS) ||
+			uint16_t star1 = I2C1->STAR1;
+			asm volatile ("" ::: "memory"); // prevent compiler from reordering the read between STAR1 and STAR2
+			uint16_t star2 = I2C1->STAR2;
+			if ((star1 & DISPLAY_I2C_ERROR_FLAGS) ||
 				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_TRANSFER_TIMEOUT) {
 				// First attempt to recover by sending an I2C end bit. If that failed, perform I2C bus reset.
 				if(!display_loop_step_reset_i2c_on_error) {
@@ -208,7 +209,11 @@ void display_loop(void)
 					display_loop_step = DISPLAY_LOOP_STEP_RESET_I2C_SETUP;
 				}
 				goto process_again;
+			} else if(star1 == display_loop_step_expected_i2c_star1 && star2 == display_loop_step_expected_i2c_star2) {
+				display_loop_step = display_loop_step_next;
+				goto process_again;
 			}
+		}
 		break;
 		case DISPLAY_LOOP_STEP_WAIT_BUS_IDLE:
 			if(!(I2C1->STAR2 & I2C_STAR2_BUSY)) {
@@ -245,14 +250,14 @@ void display_loop(void)
 		case DISPLAY_LOOP_STEP_WAIT_DMA:
 		{
 			uint8_t go_to_next_step = 0;
-			if(DMA1->INTFR & DMA_TCIF6) {
-				DMA1->INTFCR = DMA_CTCIF6;
-				go_to_next_step = 1;
-			} else if ((DMA1->INTFR & DMA_TEIF6) ||
+			if ((DMA1->INTFR & DMA_TEIF6) ||
 				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_DMA_TIMEOUT) {
 				// If the DMA couldn't be completed properly, I assume that the I2C bus is fucked up.
 				// Let's reset that I2C bus, just in case.
 				display_loop_step_reset_i2c_on_error = 1;
+				go_to_next_step = 1;
+			} else if(DMA1->INTFR & DMA_TCIF6) {
+				DMA1->INTFCR = DMA_CTCIF6;
 				go_to_next_step = 1;
 			}
 
