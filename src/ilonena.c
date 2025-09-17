@@ -33,20 +33,36 @@
 #include <stdio.h>
 #include <string.h>
 
-volatile uint8_t key_to_be_sent = HID_KEY_NONE;
+uint8_t key_sequence_to_be_sent[32] = {0}; // CONCURRENCY_VARIABLE: written by main loop, read by usb_handle_user_in_request()
+size_t key_sequence_end_index = 0; // CONCURRENCY_VARIABLE: ditto
 
 void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int endp, uint32_t sendtok, struct rv003usb_internal *ist) {
 	if(endp == 0) {
 		// Always make empty response for control transfer
 		usb_send_empty( sendtok );
 	} else if(endp == 1) {
+		asm volatile ("" ::: "memory");
 		// Keyboard end point
 		// Send the previous payload. We want to send out the response as soon as possible and cannot afford to wait for building the payload
 		static uint8_t usb_response[8] = { 0x00 }; // Format: modifiers_keys (1 byte), reserved (1 byte), key_scancodes (6 bytes)
+		static size_t key_sequence_start_index;
+		static uint8_t release_sent = 1;
 		usb_send_data( usb_response, 8, 0, sendtok );
 
-		// Build the next response by sending out the key
-		usb_response[2] = key_to_be_sent;
+		if(key_sequence_start_index != key_sequence_end_index) {
+			if(release_sent) {
+				usb_response[2] = key_sequence_to_be_sent[key_sequence_start_index];
+				release_sent = 0;
+			} else {
+				usb_response[2] = 0x00;
+				release_sent = 1;
+				if(++key_sequence_start_index >= sizeof(key_sequence_to_be_sent)) {
+					key_sequence_start_index = 0;
+				}
+			}
+		} else {
+			usb_response[2] = 0x00;
+		}
 	}
 }
 
@@ -69,19 +85,29 @@ int main() {
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
 	uint32_t last_update_tick = SysTick->CNT;
+	uint32_t button_state_prev = 0;
 	while(1) {
-		uint8_t found = 0;
 		uint32_t button_state = button_get_state();
 		for(size_t i=0; i<20; i++) {
-			if(button_state & (1U << i)) {
-				key_to_be_sent = HID_KEY_A + i;
-				found = 1;
+			if(!(button_state_prev & (1U << i)) && (button_state & (1U << i))) {
+				size_t index = key_sequence_end_index;
+				key_sequence_to_be_sent[index] = HID_KEY_X;
+				if(++index >= sizeof(key_sequence_to_be_sent)) {
+					index = 0;
+				}
+				key_sequence_to_be_sent[index] = HID_KEY_Y;
+				if(++index >= sizeof(key_sequence_to_be_sent)) {
+					index = 0;
+				}
+				key_sequence_to_be_sent[index] = HID_KEY_A + i;
+				if(++index >= sizeof(key_sequence_to_be_sent)) {
+					index = 0;
+				}
+				key_sequence_end_index = index;
 				break;
 			}
 		}
-		if(!found) {
-			key_to_be_sent = HID_KEY_NONE;
-		}
+		button_state_prev = button_state;
 
 		// Update graphic every 100ms. TODO: remove. It's just a piece of code for testing the display
 		if(SysTick->CNT - last_update_tick >= FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) {
