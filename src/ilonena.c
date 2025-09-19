@@ -56,7 +56,7 @@ int main() {
 		uint32_t button_state = button_get_state();
 		for(size_t i=0; i<20; i++) {
 			if(!(button_state_prev & (1U << i)) && (button_state & (1U << i))) {
-				keyboard_write_character(KEYBOARD_OUTPUT_MODE_LATIN, i);
+				keyboard_write_character(KEYBOARD_OUTPUT_MODE_LINUX, i);
 			}
 		}
 		button_state_prev = button_state;

@@ -30,6 +30,7 @@ enum keyboard_output_mode {
 	KEYBOARD_OUTPUT_MODE_WINDOWS,
 	KEYBOARD_OUTPUT_MODE_LINUX,
 	KEYBOARD_OUTPUT_MODE_MACOS,
+	KEYBOARD_OUTPUT_MODE_IDLE, // release all keys. Do not release any key until IDLE state is reached! Not an actual usable output mode by user
 };
 
 void keyboard_init(void);
