@@ -111,7 +111,6 @@ static uint32_t button_handle_debounce(uint8_t reading, uint32_t state, int8_t d
 }
 
 void button_loop(void) {
-	asm volatile ("" ::: "memory");
 	static size_t button_scan_column = 0;
 	// positive is pressed count, negative is released count
 	static int8_t button_debounce[BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT] = {0};

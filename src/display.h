@@ -27,8 +27,7 @@
 #include <stdint.h>
 
 void display_init(void);
-void display_loop(void);
-
+void display_loop(void); // CONCURRENCY: can preempt other functions
 
 #define DISPLAY_WIDTH (128)
 
