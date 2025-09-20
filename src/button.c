@@ -71,10 +71,12 @@ const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_I
 #define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
 
 uint32_t button_state = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_state()
+uint32_t button_press_event = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_state()
 
 void button_init(void) {
 	// Initialize the state variable(s)
 	button_state = 0;
+	button_press_event = 0;
 
 	// Enable clock for GPIOA, GPIOC and GPIOD
 	RCC->APB2PCENR |= (RCC_IOPAEN | RCC_IOPCEN | RCC_IOPDEN);
@@ -115,6 +117,7 @@ void button_loop(void) {
 	// positive is pressed count, negative is released count
 	static int8_t button_debounce[BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT] = {0};
 
+	uint32_t button_state_prev = button_state;
 	// read from the rows
 	uint32_t row_reading = BUTTON_ROW_GPIO_PORT->INDR;
 	for(size_t i=0; i<BUTTON_ROW_COUNT; i++) {
@@ -139,9 +142,30 @@ void button_loop(void) {
 	}
 	// write to the columns
 	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_scan_column];
+
+
+	// Perform compiler-level "refresh" of button_press_event because it might be modified by button_get_pressed_event()
+	asm volatile ("" ::: "memory");
+	// Truth table for just pressed event:
+	// A B -> C
+	// 0 0 -> 0
+	// 0 1 -> 1
+	// 1 0 -> 0
+	// 1 1 -> 0
+	// With the truth table above, we OR that into the button_press_event variable.
+	button_press_event |= (button_state ^ button_state_prev) & button_state;
 }
 
 uint32_t button_get_state(void) {
 	asm volatile ("" ::: "memory");
 	return button_state;
+}
+
+uint32_t button_get_pressed_event(void) {
+	asm volatile ("" ::: "memory");
+	__disable_irq();
+	uint32_t ret = button_press_event;
+	button_press_event = 0;
+	__enable_irq();
+	return ret;
 }

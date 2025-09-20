@@ -29,3 +29,4 @@
 void button_init(void);
 void button_loop(void); // CONCURRENCY: can preempt other functions
 uint32_t button_get_state(void); // Each bit is a button. 1 if held, 0 if released
+uint32_t button_get_pressed_event(void); // Each bit is a button. 1 if press event triggered, 0 if released

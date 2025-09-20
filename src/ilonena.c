@@ -51,15 +51,13 @@ int main() {
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
 	uint32_t last_update_tick = SysTick->CNT;
-	uint32_t button_state_prev = 0;
 	while(1) {
-		uint32_t button_state = button_get_state();
+		uint32_t button_press_event = button_get_pressed_event();
 		for(size_t i=0; i<20; i++) {
-			if(!(button_state_prev & (1U << i)) && (button_state & (1U << i))) {
+			if(button_press_event & (1U << i)) {
 				keyboard_write_character(KEYBOARD_OUTPUT_MODE_LINUX, i);
 			}
 		}
-		button_state_prev = button_state;
 
 		// Update graphic every 100ms. TODO: remove. It's just a piece of code for testing the display
 		if(SysTick->CNT - last_update_tick >= FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) {
