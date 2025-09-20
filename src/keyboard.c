@@ -140,12 +140,24 @@ static void keyboard_push_to_out_buffer(uint8_t key_id) {
 	}
 }
 
-const uint8_t keyboard_hex_to_hid_key[16] = {
-	HID_KEY_0, HID_KEY_1, HID_KEY_2, HID_KEY_3,
-	HID_KEY_4, HID_KEY_5, HID_KEY_6, HID_KEY_7,
-	HID_KEY_8, HID_KEY_9, HID_KEY_A, HID_KEY_B,
-	HID_KEY_C, HID_KEY_D, HID_KEY_E, HID_KEY_F,
-};
+static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
+	static const uint8_t keyboard_hex_to_hid_key[16] = {
+		HID_KEY_0, HID_KEY_1, HID_KEY_2, HID_KEY_3,
+		HID_KEY_4, HID_KEY_5, HID_KEY_6, HID_KEY_7,
+		HID_KEY_8, HID_KEY_9, HID_KEY_A, HID_KEY_B,
+		HID_KEY_C, HID_KEY_D, HID_KEY_E, HID_KEY_F,
+	};
+	uint8_t handled_leading_zeros = 0;
+	// reverse iteration from 7 to 0 inclusive using unsigned integer
+	for(uint32_t i=8; i-->0; ) {
+		uint8_t digit = (codepoint & (0xF<<(i*4))) >> (i*4);
+		if(!handled_leading_zeros && !digit) {
+			continue; // Do not type out leading zeros
+		}
+		keyboard_push_to_out_buffer(keyboard_hex_to_hid_key[digit]);
+		handled_leading_zeros = 1;
+	}
+}
 
 void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id) {
 	keyboard_push_to_out_buffer(KEYBOARD_MODE_START+mode);
@@ -172,19 +184,23 @@ void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id
 		break;
 		case KEYBOARD_OUTPUT_MODE_LINUX:
 		{
-			uint8_t handled_leading_zeros = 0;
-			for(size_t i=8; i-->0; ) { // reverse iteration from 7 to 0 inclusive with unsigned integer
-				uint8_t digit = (codepoint & (0xF<<(i*4))) >> (i*4);
-				if(!handled_leading_zeros && !digit) {
-					continue; // Ignore leading zeros
-				}
-				keyboard_push_to_out_buffer(keyboard_hex_to_hid_key[digit]);
-				handled_leading_zeros = 1;
-			}
+			keyboard_push_hex_to_out_buffer(codepoint);
 			keyboard_push_to_out_buffer(HID_KEY_SPACE); // Press space after complete entering the unicode
 		}
 		break;
 		case KEYBOARD_OUTPUT_MODE_MACOS:
+			// Send hex in UTF-16 format
+			uint32_t utf16_codepoint;
+			if(codepoint <= 0xFFFF) {
+				utf16_codepoint = codepoint;
+			} else if (codepoint <= 0x10FFFF) {
+				uint32_t codepoint_base = codepoint - 0x10000U;
+				utf16_codepoint = ((0xD800 | ((codepoint_base & (0x3FF<<10)) >> 10)) << 16) | (0xDC00 | (codepoint_base & 0x3FF));
+			} else {
+				// Outside of UTF-16's range. Let's fill in an emoji.
+				utf16_codepoint = 0xD83DDD95;
+			}
+			keyboard_push_hex_to_out_buffer(utf16_codepoint);
 		break;
 		case KEYBOARD_OUTPUT_MODE_IDLE:
 			while(1); // Should never happen!
