@@ -51,11 +51,18 @@ int main() {
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
 	uint32_t last_update_tick = SysTick->CNT;
+	enum keyboard_output_mode mode = KEYBOARD_OUTPUT_MODE_LATIN;
 	while(1) {
 		uint32_t button_press_event = button_get_pressed_event();
 		for(size_t i=0; i<20; i++) {
 			if(button_press_event & (1U << i)) {
-				keyboard_write_character(KEYBOARD_OUTPUT_MODE_LINUX, i);
+				if(i == 18) {
+					if(++mode >= KEYBOARD_OUTPUT_MODE_IDLE) {
+						mode = 0;
+					}
+				} else {
+					keyboard_write_character(mode, i);
+				}
 			}
 		}
 
@@ -64,7 +71,7 @@ int main() {
 			static int32_t index = 0;
 			last_update_tick = SysTick->CNT;
 			display_clear();
-			display_draw_16(test_image, sizeof(test_image)/sizeof(*test_image), index%(128+8)-8, index%48-16, index%4 | index%2);
+			display_draw_16(test_image, sizeof(test_image)/sizeof(*test_image), index%(128+8)-8, index%48-16, mode);
 			display_set_refresh_flag();
 			index++;
 		}
