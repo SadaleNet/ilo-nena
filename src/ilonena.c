@@ -57,7 +57,7 @@ int main() {
 		for(size_t i=0; i<20; i++) {
 			if(button_press_event & (1U << i)) {
 				if(i == 18) {
-					if(++mode >= KEYBOARD_OUTPUT_MODE_IDLE) {
+					if(++mode >= KEYBOARD_OUTPUT_MODE_END) {
 						mode = 0;
 					}
 				} else {

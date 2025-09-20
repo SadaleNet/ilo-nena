@@ -32,6 +32,7 @@
 
 #define KEYBOARD_MODE_START (HID_KEY_LANG1)
 #define KEYBOARD_SITELEN_PONA_CODEPOINT_START (0xF1900U)
+#define KEYBOADRD_LOCK_CHANGE_TIMEOUT (100) // How long it takes to give up change of lock state. Unit depends on the polling frequency
 
 uint8_t keyboard_out_buffer[32] = {0}; // CONCURRENCY_VARIABLE: written by main loop, read by usb_handle_user_in_request()
 size_t keyboard_out_buffer_write_index = 0; // CONCURRENCY_VARIABLE: ditto
@@ -43,6 +44,29 @@ void usb_handle_user_data(struct usb_endpoint *e, int current_endpoint, uint8_t 
 	if (len > 0) {
 		keyboard_locks_indicator = data[0];
 	}
+}
+
+uint8_t usb_handle_user_in_request_toggle_locks(uint8_t usb_response[8], uint8_t lock_indicator_target, uint8_t lock_indicator_target_mask) {
+	uint8_t lock_change_required = (keyboard_locks_indicator ^ lock_indicator_target) & lock_indicator_target_mask;
+
+	size_t usb_index = 2;
+	if(lock_change_required & KEYBOARD_LED_NUMLOCK) {
+		usb_response[usb_index++] = HID_KEY_NUM_LOCK;
+	}
+	if(lock_change_required & KEYBOARD_LED_CAPSLOCK) {
+		usb_response[usb_index++] = HID_KEY_CAPS_LOCK;
+	}
+	if(lock_change_required & KEYBOARD_LED_SCROLLLOCK) {
+		usb_response[usb_index++] = HID_KEY_SCROLL_LOCK;
+	}
+	// No idea on how to handle COMPOSE key nor KANA key.
+	// if(lock_change_required & KEYBOARD_LED_COMPOSE) {
+	//	usb_response[usb_index++] = ???;
+	// }
+	// if(lock_change_required & KEYBOARD_LED_KANA) {
+	// 	usb_response[usb_index++] = ???;
+	// }
+	return lock_change_required;
 }
 
 void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int endp, uint32_t sendtok, struct rv003usb_internal *ist) {
@@ -68,8 +92,10 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			KEY_STEP_WAIT_COMMAND,
 			KEY_STEP_RELEASE_LOCKS_INIT,
 			KEY_STEP_PRESS_MODIFIER_KEYS,
-			KEY_STEP_RELEASE_MODIFIER_KEYS,
+			KEY_STEP_RELEASE_MODIFIER_KEYS, // skip the step if the modifier key is to be held (e.g. Windows)
 			KEY_STEP_SEND_KEYS, // syntax sugar of KEY_STEP_WAIT_COMMAND
+			KEY_STEP_PRESS_MODIFIER_KEYS_AT_THE_END,
+			KEY_STEP_RELEASE_MODIFIER_KEYS_AT_THE_END,
 			KEY_STEP_RELEASE_LOCKS_RESTORE,
 		} key_step = 0;
 		usb_send_data(usb_response, 8, 0, sendtok);
@@ -78,89 +104,68 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			case KEY_STEP_WAIT_COMMAND:
 			case KEY_STEP_SEND_KEYS:
 				if(keyboard_out_buffer_read_index != keyboard_out_buffer_write_index) {
+					enum keyboard_output_mode mode_prev = mode;
 					uint8_t key_id = keyboard_out_buffer[keyboard_out_buffer_read_index];
 					if(key_id >= KEYBOARD_MODE_START) {
-						memset(usb_response, 0, sizeof(usb_response));
 						mode = key_id-KEYBOARD_MODE_START;
-						key_release_sent = 1;
-						switch(mode) {
-							case KEYBOARD_OUTPUT_MODE_LATIN:
-							case KEYBOARD_OUTPUT_MODE_MACOS:
-								// Need to ensure Capslock is inactive
-								lock_indicator_target = 0;
-								lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
-								key_step_next_after_locking = KEY_STEP_SEND_KEYS;
-							break;
-							case KEYBOARD_OUTPUT_MODE_LINUX:
-								// Need to ensure Capslock is inactive
-								lock_indicator_target = 0;
-								lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
-								key_step_next_after_locking = KEY_STEP_PRESS_MODIFIER_KEYS;
-							break;
-							case KEYBOARD_OUTPUT_MODE_WINDOWS:
-								// Need to ensure Numlock is active
-								lock_indicator_target = KEYBOARD_LED_NUMLOCK;
-								lock_indicator_target_mask = KEYBOARD_LED_NUMLOCK;
-								key_step_next_after_locking = KEY_STEP_SEND_KEYS;
-							break;
-							case KEYBOARD_OUTPUT_MODE_IDLE:
-								// Compute the target state required for toggling the target lock buttons back to the original state
-								lock_indicator_target = (lock_indicator_target ^ lock_indicator_target_toggled) & lock_indicator_target_mask;
-							break;
-						}
-						// Determine if need to toggle the lock button(s)
-						uint8_t lock_change_required = (keyboard_locks_indicator ^ lock_indicator_target) & lock_indicator_target_mask;
-						if(lock_change_required) {
-							size_t usb_index = 2;
-							if(lock_change_required & KEYBOARD_LED_NUMLOCK) {
-								usb_response[usb_index++] = HID_KEY_NUM_LOCK;
-							}
-							if(lock_change_required & KEYBOARD_LED_CAPSLOCK) {
-								usb_response[usb_index++] = HID_KEY_CAPS_LOCK;
-							}
-							if(lock_change_required & KEYBOARD_LED_SCROLLLOCK) {
-								usb_response[usb_index++] = HID_KEY_SCROLL_LOCK;
-							}
-							// No idea on how to handle COMPOSE key nor KANA key.
-							// if(lock_change_required & KEYBOARD_LED_COMPOSE) {
-							//	usb_response[usb_index++] = ???;
-							// }
-							// if(lock_change_required & KEYBOARD_LED_KANA) {
-							// 	usb_response[usb_index++] = ???;
-							// }
-
-							lock_release_wait_counter = 100; // Timeout for waiting for the target lock state
-							key_step = (mode == KEYBOARD_OUTPUT_MODE_IDLE ? KEY_STEP_RELEASE_LOCKS_RESTORE : KEY_STEP_RELEASE_LOCKS_INIT);
-							if(mode != KEYBOARD_OUTPUT_MODE_IDLE) {
-								lock_indicator_target_toggled = lock_change_required;
+						if(mode == KEYBOARD_OUTPUT_MODE_END) {
+							usb_response[2] = HID_KEY_NONE; // release the final key in the key sequence
+							lock_indicator_target = (lock_indicator_target ^ lock_indicator_target_toggled) & lock_indicator_target_mask;
+							switch(mode_prev) {
+								case KEYBOARD_OUTPUT_MODE_LATIN:
+								case KEYBOARD_OUTPUT_MODE_LINUX:
+									usb_handle_user_in_request_toggle_locks(usb_response, lock_indicator_target, lock_indicator_target_mask);
+									key_step = KEY_STEP_RELEASE_LOCKS_RESTORE;
+								break;
+								case KEYBOARD_OUTPUT_MODE_WINDOWS:
+								case KEYBOARD_OUTPUT_MODE_MACOS:
+									key_step = KEY_STEP_PRESS_MODIFIER_KEYS_AT_THE_END;
+								break;
+								break;
+								case KEYBOARD_OUTPUT_MODE_END:
+									while(1); // Should never reach here
+								break;
 							}
 						} else {
-							if(mode == KEYBOARD_OUTPUT_MODE_IDLE) {
-								key_step = KEY_STEP_WAIT_COMMAND;
-							} else {
-								key_step = key_step_next_after_locking;
-								lock_indicator_target_toggled = 0;
+							switch(mode) {
+								case KEYBOARD_OUTPUT_MODE_LATIN:
+									// Need to ensure Capslock is inactive
+									lock_indicator_target = 0;
+									lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
+									key_step_next_after_locking = KEY_STEP_SEND_KEYS;
+								break;
+								case KEYBOARD_OUTPUT_MODE_WINDOWS:
+									// Need to ensure Numlock is active
+									lock_indicator_target = KEYBOARD_LED_NUMLOCK;
+									lock_indicator_target_mask = KEYBOARD_LED_NUMLOCK;
+									key_step_next_after_locking = KEY_STEP_PRESS_MODIFIER_KEYS;
+								break;
+								case KEYBOARD_OUTPUT_MODE_LINUX:
+									// Need to ensure Capslock is inactive
+									lock_indicator_target = 0;
+									lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
+									key_step_next_after_locking = KEY_STEP_PRESS_MODIFIER_KEYS;
+								break;
+								case KEYBOARD_OUTPUT_MODE_MACOS:
+									// Need to ensure Capslock is inactive
+									lock_indicator_target = 0;
+									lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
+									key_step_next_after_locking = KEY_STEP_PRESS_MODIFIER_KEYS;
+								break;
+								case KEYBOARD_OUTPUT_MODE_END:
+									while(1); // Should never reach here!
+								break;
 							}
+							key_release_sent = 1;
+							lock_indicator_target_toggled = usb_handle_user_in_request_toggle_locks(usb_response, lock_indicator_target, lock_indicator_target_mask);
+							lock_release_wait_counter = KEYBOADRD_LOCK_CHANGE_TIMEOUT; // Timeout for waiting for the target lock state
+							key_step = KEY_STEP_RELEASE_LOCKS_INIT;
 						}
 
 						if(++keyboard_out_buffer_read_index >= sizeof(keyboard_out_buffer)) {
 							keyboard_out_buffer_read_index = 0;
 						}
 					} else {
-						switch(mode) {
-							case KEYBOARD_OUTPUT_MODE_WINDOWS:
-							case KEYBOARD_OUTPUT_MODE_MACOS:
-								// The Mac OS Option key is equivalent to KEYBOARD_MODIFIER_LEFTALT
-								usb_response[0] = KEYBOARD_MODIFIER_LEFTALT;
-							break;
-							case KEYBOARD_OUTPUT_MODE_LATIN:
-							case KEYBOARD_OUTPUT_MODE_LINUX:
-								usb_response[0] = 0x00;
-							break;
-							case KEYBOARD_OUTPUT_MODE_IDLE:
-								while(1); // Should never happen!
-							break;
-						}
 						if(key_release_sent) {
 							usb_response[2] = keyboard_out_buffer[keyboard_out_buffer_read_index];
 							key_release_sent = 0;
@@ -169,14 +174,7 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 							}
 							key_release_sent = 0;
 						} else {
-							if(mode == KEYBOARD_OUTPUT_MODE_LINUX) {
-								// Release the CTRL+SHIFT of the CTRL+SHIFT+U
-								usb_response[0] = 0x00;
-							} else {
-								// For Windows/Mac OS mode, need to keep holding the Alt/Option key.
-								// That's why we don't change the status of usb_response[0] here.
-							}
-							usb_response[2] = 0x00;
+							usb_response[2] = HID_KEY_NONE;
 							key_release_sent = 1;
 						}
 					}
@@ -190,24 +188,36 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			break;
 			case KEY_STEP_PRESS_MODIFIER_KEYS:
 				switch(mode) {
+					case KEYBOARD_OUTPUT_MODE_MACOS:
+					case KEYBOARD_OUTPUT_MODE_WINDOWS:
+						// The Mac OS Option key is equivalent to KEYBOARD_MODIFIER_LEFTALT
+						usb_response[0] = KEYBOARD_MODIFIER_LEFTALT;
+						key_step = KEY_STEP_SEND_KEYS;
+					break;
 					case KEYBOARD_OUTPUT_MODE_LINUX:
 						// Send CTRL+SHIFT+U prefix
 						usb_response[0] = KEYBOARD_MODIFIER_LEFTCTRL|KEYBOARD_MODIFIER_LEFTSHIFT;
 						usb_response[2] = HID_KEY_U;
 						key_step = KEY_STEP_RELEASE_MODIFIER_KEYS;
 					break;
-					case KEYBOARD_OUTPUT_MODE_WINDOWS:
-					case KEYBOARD_OUTPUT_MODE_MACOS:
 					case KEYBOARD_OUTPUT_MODE_LATIN:
-					case KEYBOARD_OUTPUT_MODE_IDLE:
+					case KEYBOARD_OUTPUT_MODE_END:
 						while(1); // Should never happen!
 					break;
 				}
-				key_step = KEY_STEP_RELEASE_MODIFIER_KEYS;
 			break;
 			case KEY_STEP_RELEASE_MODIFIER_KEYS:
-				memset(usb_response, 0, sizeof(usb_response));
+				usb_response[0] = 0x00;
 				key_step = KEY_STEP_SEND_KEYS;
+			break;
+			case KEY_STEP_PRESS_MODIFIER_KEYS_AT_THE_END:
+				usb_response[0] = 0x00;
+				key_step = KEY_STEP_RELEASE_MODIFIER_KEYS_AT_THE_END;
+			break;
+			case KEY_STEP_RELEASE_MODIFIER_KEYS_AT_THE_END:
+				// Toggle lock state then wait for the lock state to be restored
+				usb_handle_user_in_request_toggle_locks(usb_response, lock_indicator_target, lock_indicator_target_mask);
+				key_step = KEY_STEP_RELEASE_LOCKS_RESTORE;
 			break;
 			case KEY_STEP_RELEASE_LOCKS_RESTORE:
 				memset(usb_response, 0, sizeof(usb_response));
@@ -301,12 +311,12 @@ void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id
 			}
 			keyboard_push_hex_to_out_buffer(utf16_codepoint);
 		break;
-		case KEYBOARD_OUTPUT_MODE_IDLE:
+		case KEYBOARD_OUTPUT_MODE_END:
 			while(1); // Should never happen!
 		break;
 	}
 
-	keyboard_push_to_out_buffer(KEYBOARD_MODE_START+KEYBOARD_OUTPUT_MODE_IDLE); // Release all keys
+	keyboard_push_to_out_buffer(KEYBOARD_MODE_START+KEYBOARD_OUTPUT_MODE_END); // Release all keys
 }
 
 void keyboard_init(void) {
