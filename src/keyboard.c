@@ -47,6 +47,8 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 		// Send the previous payload. We want to send out the response as soon as possible and cannot afford to wait for building the payload
 		static uint8_t usb_response[8] = { 0x00 }; // Format: modifiers_keys (1 byte), reserved (1 byte), key_scancodes (6 bytes)
 		static enum keyboard_output_mode mode;
+		// The procedure of sending a key goes like this: key 1 press -> key 1 release -> key 2 press -> key 2 release and so on.
+		// This is required in case two consecutive identical keys are to be typed
 		static uint8_t key_release_sent = 1;
 		usb_send_data( usb_response, 8, 0, sendtok );
 
@@ -60,12 +62,12 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 						// Send CTRL+SHIFT+U prefix
 						usb_response[0] = KEYBOARD_MODIFIER_LEFTCTRL|KEYBOARD_MODIFIER_LEFTSHIFT;
 						usb_response[2] = HID_KEY_U;
-						key_release_sent = 0;
+						key_release_sent = 0; // Need to release the key combo before typing the next key.
 					break;
 					case KEYBOARD_OUTPUT_MODE_LATIN:
 					case KEYBOARD_OUTPUT_MODE_WINDOWS:
 					case KEYBOARD_OUTPUT_MODE_MACOS:
-						// Do nothing
+						// Do nothing. Can type the next key right away
 						key_release_sent = 1;
 					break;
 					case KEYBOARD_OUTPUT_MODE_IDLE:
@@ -106,6 +108,9 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 					if(mode == KEYBOARD_OUTPUT_MODE_LINUX) {
 						// Release the CTRL+SHIFT of the CTRL+SHIFT+U
 						usb_response[0] = 0x00;
+					} else {
+						// For Windows/Mac OS mode, need to keep holding the Alt/Option key.
+						// That's why we don't change the status of usb_response[0] here.
 					}
 					usb_response[2] = 0x00;
 					key_release_sent = 1;
