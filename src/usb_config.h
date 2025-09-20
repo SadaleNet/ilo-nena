@@ -27,7 +27,7 @@
 #define RV003USB_EVENT_DEBUGGING 0
 #define RV003USB_HANDLE_IN_REQUEST 1
 #define RV003USB_OTHER_CONTROL 0
-#define RV003USB_HANDLE_USER_DATA 0
+#define RV003USB_HANDLE_USER_DATA 1
 #define RV003USB_HID_FEATURES 0
 
 #ifndef __ASSEMBLER__
@@ -70,16 +70,22 @@ static const uint8_t keyboard_hid_desc[] = {   /* USB report descriptor */
 		HID_REPORT_COUNT( 1 ),                        //     REPORT_COUNT (1)
 		HID_REPORT_SIZE( 8 ),                         //     REPORT_SIZE (8)
 		HID_INPUT( 0x03 ),                            //     INPUT (Cnst,Var,Abs) ; Reserved byte
-		// Disable LED. There's no LED on ilo nena
-		// HID_REPORT_COUNT( 5 ),                        //     REPORT_COUNT (5)
-		// HID_REPORT_SIZE( 1 ),                         //     REPORT_SIZE (1)
-		// HID_USAGE_PAGE( HID_USAGE_PAGE_LED ),         //     USAGE_PAGE (LEDs)
-    	// HID_USAGE_MIN( 0x01 ),                        //     USAGE_MINIMUM (Num Lock)
-	    // HID_USAGE_MAX( 0x05 ),                        //     USAGE_MAXIMUM (Kana)
-		// HID_OUTPUT( 0x02 ),                           //     OUTPUT (Data,Var,Abs) ; LED report
-		// HID_REPORT_COUNT( 1 ),                        //     REPORT_COUNT (1)
-		// HID_REPORT_SIZE( 3 ),                         //     REPORT_SIZE (3)
-		// HID_OUTPUT( 0x03 ),                           //     OUTPUT (Cnst,Var,Abs) ; LED report padding
+
+		// LED indicator. ilo nena needs to determine if it need to toggle the num lock and caps lock
+		HID_REPORT_COUNT( 5 ),                        //     REPORT_COUNT (2)
+		HID_REPORT_SIZE( 1 ),                         //     REPORT_SIZE (1)
+		HID_USAGE_PAGE( HID_USAGE_PAGE_LED ),         //     USAGE_PAGE (LEDs)
+    	HID_USAGE_MIN( 0x01 ),                        //     USAGE_MINIMUM (Num Lock)
+	    HID_USAGE_MAX( 0x05 ),                        //     USAGE_MAXIMUM (Kana)
+		HID_OUTPUT( 0x02 ),                           //     OUTPUT (Data,Var,Abs) ; LED report
+		HID_REPORT_COUNT( 1 ),                        //     REPORT_COUNT (1) ; pad for 1 byte
+		HID_REPORT_SIZE( 3 ),                         //     REPORT_SIZE (6) ; pad for 6 bits each
+		HID_OUTPUT( 0x03 ),                           //     OUTPUT (Cnst,Var,Abs) ; LED report padding
+		HID_REPORT_COUNT( 7 ),                        //     REPORT_COUNT (7) ; pad for 7 bytes
+		HID_REPORT_SIZE( 8 ),                         //     REPORT_SIZE (8) ; pad for 8 bits each
+		HID_OUTPUT( 0x03 ),						      //     OUTPUT (Cnst,Var,Abs) ; Padding to fill buffer to 8 bytes
+
+		// The keyboard output itself
 		HID_REPORT_COUNT( 6 ),                        //     REPORT_COUNT (6)
 		HID_REPORT_SIZE( 8 ),                         //     REPORT_SIZE (8)
 		HID_LOGICAL_MIN( 0 ),                         //     LOGICAL_MINIMUM (0)

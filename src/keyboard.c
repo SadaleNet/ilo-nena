@@ -37,6 +37,14 @@ uint8_t keyboard_out_buffer[32] = {0}; // CONCURRENCY_VARIABLE: written by main 
 size_t keyboard_out_buffer_write_index = 0; // CONCURRENCY_VARIABLE: ditto
 size_t keyboard_out_buffer_read_index = 0; // CONCURRENCY_VARIABLE: written by usb_handle_user_in_request(), read by main loop
 
+uint8_t keyboard_locks_indicator = 0; // Not a concurrent variable. Used in usb_handle_user_data() and usb_handle_user_in_request(), both handled in the same ISR
+
+void usb_handle_user_data(struct usb_endpoint *e, int current_endpoint, uint8_t *data, int len, struct rv003usb_internal *ist) {
+	if (len > 0) {
+		keyboard_locks_indicator = data[0];
+	}
+}
+
 void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int endp, uint32_t sendtok, struct rv003usb_internal *ist) {
 	if(endp == 0) {
 		// Always make empty response for control transfer
@@ -50,72 +58,180 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 		// The procedure of sending a key goes like this: key 1 press -> key 1 release -> key 2 press -> key 2 release and so on.
 		// This is required in case two consecutive identical keys are to be typed
 		static uint8_t key_release_sent = 1;
-		usb_send_data( usb_response, 8, 0, sendtok );
+		// The Num Lock, Caps Lock, etc. that we're gonna modify
+		static uint8_t lock_indicator_modified = 0;
+		static uint32_t lock_release_wait_counter = 0;
+		static enum {
+			KEY_STEP_WAIT_COMMAND,
+			KEY_STEP_RELEASE_LOCKS_INIT,
+			KEY_STEP_PRESS_MODIFIER_KEYS,
+			KEY_STEP_RELEASE_MODIFIER_KEYS,
+			KEY_STEP_SEND_KEYS, // syntax sugar of KEY_STEP_WAIT_COMMAND
+			KEY_STEP_RELEASE_LOCKS_RESTORE,
+		} key_step = 0;
+		usb_send_data(usb_response, 8, 0, sendtok);
 
-		if(keyboard_out_buffer_read_index != keyboard_out_buffer_write_index) {
-			uint8_t key_id = keyboard_out_buffer[keyboard_out_buffer_read_index];
-			if(key_id >= KEYBOARD_MODE_START) {
-				memset(usb_response, 0, sizeof(usb_response));
-				mode = key_id-KEYBOARD_MODE_START;
-				switch(mode) {
-					case KEYBOARD_OUTPUT_MODE_LINUX:
-						// Send CTRL+SHIFT+U prefix
-						usb_response[0] = KEYBOARD_MODIFIER_LEFTCTRL|KEYBOARD_MODIFIER_LEFTSHIFT;
-						usb_response[2] = HID_KEY_U;
-						key_release_sent = 0; // Need to release the key combo before typing the next key.
-					break;
-					case KEYBOARD_OUTPUT_MODE_LATIN:
-					case KEYBOARD_OUTPUT_MODE_WINDOWS:
-					case KEYBOARD_OUTPUT_MODE_MACOS:
-						// Do nothing. Can type the next key right away
+		switch(key_step) {
+			case KEY_STEP_WAIT_COMMAND:
+			case KEY_STEP_SEND_KEYS:
+				if(keyboard_out_buffer_read_index != keyboard_out_buffer_write_index) {
+					uint8_t key_id = keyboard_out_buffer[keyboard_out_buffer_read_index];
+					if(key_id >= KEYBOARD_MODE_START) {
+						memset(usb_response, 0, sizeof(usb_response));
+						mode = key_id-KEYBOARD_MODE_START;
 						key_release_sent = 1;
-					break;
-					case KEYBOARD_OUTPUT_MODE_IDLE:
-						// The purposes of this state is to force releasing all keys.
-						// It is a bad idea to release the key whenever (keyboard_out_buffer_read_index == keyboard_out_buffer_write_index)
-						// because in case the main loop is lagging, the condition can be reached before main loop had finished filling the buffer.
-						// Therefore, the keys are only released upon MODE_IDLE is detected.
-					break;
+						switch(mode) {
+							case KEYBOARD_OUTPUT_MODE_LATIN:
+							case KEYBOARD_OUTPUT_MODE_MACOS:
+								// Release the caps lock if needed
+								if(keyboard_locks_indicator & KEYBOARD_LED_CAPSLOCK) {
+									usb_response[2] = HID_KEY_CAPS_LOCK;
+									lock_indicator_modified = KEYBOARD_LED_CAPSLOCK;
+									key_step = KEY_STEP_RELEASE_LOCKS_INIT;
+								} else {
+									key_step = KEY_STEP_SEND_KEYS;
+									lock_indicator_modified = 0;
+								}
+							break;
+							case KEYBOARD_OUTPUT_MODE_LINUX:
+								// Release the caps lock if needed
+								if(keyboard_locks_indicator & KEYBOARD_LED_CAPSLOCK) {
+									usb_response[2] = HID_KEY_CAPS_LOCK;
+									lock_indicator_modified = KEYBOARD_LED_CAPSLOCK;
+									key_step = KEY_STEP_RELEASE_LOCKS_INIT;
+								} else {
+									key_step = KEY_STEP_PRESS_MODIFIER_KEYS;
+									lock_indicator_modified = 0;
+								}
+							break;
+							case KEYBOARD_OUTPUT_MODE_WINDOWS:
+								// Press the num lock if needed
+								if(!(keyboard_locks_indicator & KEYBOARD_LED_NUMLOCK)) {
+									usb_response[2] = HID_KEY_NUM_LOCK;
+									lock_indicator_modified = KEYBOARD_LED_NUMLOCK;
+									key_step = KEY_STEP_RELEASE_LOCKS_INIT;
+								} else {
+									key_step = KEY_STEP_SEND_KEYS;
+									lock_indicator_modified = 0;
+								}
+							break;
+							case KEYBOARD_OUTPUT_MODE_IDLE:
+								// The packet had ended. Perform cleanup by restoring the lock states
+								if(lock_indicator_modified) {
+									size_t usb_index = 2;
+									if(lock_indicator_modified & KEYBOARD_LED_NUMLOCK) {
+										usb_response[usb_index++] = HID_KEY_NUM_LOCK;
+									}
+									if(lock_indicator_modified & KEYBOARD_LED_CAPSLOCK) {
+										usb_response[usb_index++] = HID_KEY_CAPS_LOCK;
+									}
+									if(lock_indicator_modified & KEYBOARD_LED_SCROLLLOCK) {
+										usb_response[usb_index++] = HID_KEY_SCROLL_LOCK;
+									}
+									// No idea on how to handle COMPOSE key nor KANA key.
+									// if(lock_indicator_modified & KEYBOARD_LED_COMPOSE) {
+									//	usb_response[usb_index++] = ???;
+									// }
+									// if(lock_indicator_modified & KEYBOARD_LED_KANA) {
+									// 	usb_response[usb_index++] = ???;
+									// }
+									lock_release_wait_counter = 10;
+									key_step = KEY_STEP_RELEASE_LOCKS_RESTORE;
+								} else {
+									key_step = KEY_STEP_WAIT_COMMAND;
+								}
+							break;
+						}
+						if(++keyboard_out_buffer_read_index >= sizeof(keyboard_out_buffer)) {
+							keyboard_out_buffer_read_index = 0;
+						}
+					} else {
+						switch(mode) {
+							case KEYBOARD_OUTPUT_MODE_WINDOWS:
+							case KEYBOARD_OUTPUT_MODE_MACOS:
+								// Windows Alt-Code requires releasing the key before pressing the next one
+								// Not sure about Mac but let's use the same handling for simplicity
+								// BTW, the Mac OS Option key is equivalent to Alt key.
+								usb_response[0] = KEYBOARD_MODIFIER_LEFTALT;
+							break;
+							case KEYBOARD_OUTPUT_MODE_LATIN:
+							case KEYBOARD_OUTPUT_MODE_LINUX:
+								usb_response[0] = 0x00;
+							break;
+							case KEYBOARD_OUTPUT_MODE_IDLE:
+								while(1); // Should never happen!
+							break;
+						}
+						if(key_release_sent) {
+							usb_response[2] = keyboard_out_buffer[keyboard_out_buffer_read_index];
+							key_release_sent = 0;
+							if(++keyboard_out_buffer_read_index >= sizeof(keyboard_out_buffer)) {
+								keyboard_out_buffer_read_index = 0;
+							}
+							key_release_sent = 0;
+						} else {
+							if(mode == KEYBOARD_OUTPUT_MODE_LINUX) {
+								// Release the CTRL+SHIFT of the CTRL+SHIFT+U
+								usb_response[0] = 0x00;
+							} else {
+								// For Windows/Mac OS mode, need to keep holding the Alt/Option key.
+								// That's why we don't change the status of usb_response[0] here.
+							}
+							usb_response[2] = 0x00;
+							key_release_sent = 1;
+						}
+					}
 				}
-				if(++keyboard_out_buffer_read_index >= sizeof(keyboard_out_buffer)) {
-					keyboard_out_buffer_read_index = 0;
-				}
-			} else {
+			break;
+			case KEY_STEP_RELEASE_LOCKS_INIT:
+				memset(usb_response, 0, sizeof(usb_response));
 				switch(mode) {
+					case KEYBOARD_OUTPUT_MODE_LINUX:
+						key_step = KEY_STEP_PRESS_MODIFIER_KEYS;
+					break;
 					case KEYBOARD_OUTPUT_MODE_WINDOWS:
 					case KEYBOARD_OUTPUT_MODE_MACOS:
-						// Windows Alt-Code requires releasing the key before pressing the next one
-						// Not sure about Mac but let's use the same handling for simplicity
-						// BTW, the Mac OS Option key is equivalent to Alt key.
-						usb_response[0] = KEYBOARD_MODIFIER_LEFTALT;
-					break;
 					case KEYBOARD_OUTPUT_MODE_LATIN:
-					case KEYBOARD_OUTPUT_MODE_LINUX:
-						usb_response[0] = 0x00;
+						key_step = KEY_STEP_SEND_KEYS;
 					break;
 					case KEYBOARD_OUTPUT_MODE_IDLE:
 						while(1); // Should never happen!
 					break;
 				}
-				if(key_release_sent) {
-					usb_response[2] = keyboard_out_buffer[keyboard_out_buffer_read_index];
-					key_release_sent = 0;
-					if(++keyboard_out_buffer_read_index >= sizeof(keyboard_out_buffer)) {
-						keyboard_out_buffer_read_index = 0;
-					}
-					key_release_sent = 0;
-				} else {
-					if(mode == KEYBOARD_OUTPUT_MODE_LINUX) {
-						// Release the CTRL+SHIFT of the CTRL+SHIFT+U
-						usb_response[0] = 0x00;
-					} else {
-						// For Windows/Mac OS mode, need to keep holding the Alt/Option key.
-						// That's why we don't change the status of usb_response[0] here.
-					}
-					usb_response[2] = 0x00;
-					key_release_sent = 1;
+			break;
+			case KEY_STEP_PRESS_MODIFIER_KEYS:
+				switch(mode) {
+					case KEYBOARD_OUTPUT_MODE_LINUX:
+						// Send CTRL+SHIFT+U prefix
+						usb_response[0] = KEYBOARD_MODIFIER_LEFTCTRL|KEYBOARD_MODIFIER_LEFTSHIFT;
+						usb_response[2] = HID_KEY_U;
+						key_step = KEY_STEP_RELEASE_MODIFIER_KEYS;
+					break;
+					case KEYBOARD_OUTPUT_MODE_WINDOWS:
+					case KEYBOARD_OUTPUT_MODE_MACOS:
+					case KEYBOARD_OUTPUT_MODE_LATIN:
+					case KEYBOARD_OUTPUT_MODE_IDLE:
+						while(1); // Should never happen!
+					break;
 				}
-			}
+				key_step = KEY_STEP_RELEASE_MODIFIER_KEYS;
+			break;
+			case KEY_STEP_RELEASE_MODIFIER_KEYS:
+				memset(usb_response, 0, sizeof(usb_response));
+				key_step = KEY_STEP_SEND_KEYS;
+			break;
+			case KEY_STEP_RELEASE_LOCKS_RESTORE:
+				memset(usb_response, 0, sizeof(usb_response));
+				if(!(--lock_release_wait_counter)) {
+					// Purpose: It's empirically found that continuous LATIN packets might sometimes
+					// output UPPERCASE WORDS when USB's polling interval is set to a lower value (e.g. 1ms).
+					// The purpose of this wait is to wait for the OS' state to settle down
+					// before sending the next packet.
+					// A more elegant solution would be check the actual indicator state with timeout.
+					// However, for simplicity, I'm not gonna implement the checking
+					key_step = KEY_STEP_WAIT_COMMAND;
+				}
+			break;
 		}
 	}
 }
