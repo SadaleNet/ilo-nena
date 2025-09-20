@@ -280,13 +280,18 @@ void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id
 		break;
 		case KEYBOARD_OUTPUT_MODE_WINDOWS:
 		{
-			char str_base10[16];
-			snprintf(str_base10, sizeof(str_base10), "%ld", codepoint);
-			for(size_t i=0; str_base10[i]; i++) {
-				if(str_base10[i] == '0') {
+			uint8_t base10_digits_reserved[10]; // 32bit unsigned integer, max is 10 digits
+			size_t base10_digits_index = 0;
+			uint32_t unparsed_number = codepoint;
+			while(unparsed_number) {
+				base10_digits_reserved[base10_digits_index++] = (unparsed_number % 10);
+				unparsed_number /= 10;
+			}
+			for(size_t i=base10_digits_index; i-->0; ) { // Reverse iteration with unsigned integer i
+				if(base10_digits_reserved[i] == 0) {
 					keyboard_push_to_out_buffer(HID_KEY_KEYPAD_0);
 				} else {
-					keyboard_push_to_out_buffer(str_base10[i]-'1'+HID_KEY_KEYPAD_1);
+					keyboard_push_to_out_buffer(base10_digits_reserved[i]-1+HID_KEY_KEYPAD_1);
 				}
 			}
 		}
