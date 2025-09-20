@@ -96,7 +96,7 @@ static uint8_t display_data_array[DISPLAY_DATA_COMMAND_SIZE+DISPLAY_DATA_SIZE] =
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 static uint8_t *const display_data_dma_start_address = &display_data_array[3];
-static uint32_t *const display_data_buffer = (uint32_t*)&display_data_array[20];
+static uint32_t *const display_data_buffer = (uint32_t*)&display_data_array[DISPLAY_DATA_COMMAND_SIZE];
 
 #define DISPLAY_REFRESH_FLAG_INIT (1U<<0)
 #define DISPLAY_REFRESH_FLAG_GRAPHIC (1U<<1)
@@ -249,22 +249,23 @@ void display_loop(void)
 		break;
 		case DISPLAY_LOOP_STEP_WAIT_DMA:
 		{
-			uint8_t go_to_next_step = 0;
 			if ((DMA1->INTFR & DMA_TEIF6) ||
 				SysTick->CNT - display_loop_step_start_waiting_tick >= DISPLAY_DMA_TIMEOUT) {
 				// If the DMA couldn't be completed properly, I assume that the I2C bus is fucked up.
 				// Let's reset that I2C bus, just in case.
-				display_loop_step_reset_i2c_on_error = 1;
-				go_to_next_step = 1;
-			} else if(DMA1->INTFR & DMA_TCIF6) {
-				DMA1->INTFCR = DMA_CTCIF6;
-				go_to_next_step = 1;
-			}
-
-			if(go_to_next_step) {
 				DMA1_Channel6->CFGR &= ~DMA_CFGR6_EN;
+				display_loop_step_reset_i2c_on_error = 1;
 				display_loop_step = DISPLAY_LOOP_STEP_SEND_END_BIT;
 				goto process_again;
+			} else if(DMA1->INTFR & DMA_TCIF6) {
+				DMA1->INTFCR = DMA_CTCIF6;
+				DMA1_Channel6->CFGR &= ~DMA_CFGR6_EN;
+
+				display_loop_step_expected_i2c_star1 = I2C_STAR1_BTF|I2C_STAR1_TXE;
+				display_loop_step_expected_i2c_star2 = I2C_STAR2_MSL|I2C_STAR2_BUSY|I2C_STAR2_TRA;
+				display_loop_step_next = DISPLAY_LOOP_STEP_SEND_END_BIT;
+				display_loop_step_start_waiting_tick = SysTick->CNT;
+				display_loop_step = DISPLAY_LOOP_STEP_WAIT_TRANSFER;
 			}
 		}
 		break;
