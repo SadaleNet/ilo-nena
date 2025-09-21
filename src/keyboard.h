@@ -24,7 +24,9 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdlib.h>
+#include <stdint.h>
+#define KEYBOARD_SITELEN_PONA_CODEPOINT_START (0xF1900U)
+
 enum keyboard_output_mode {
 	KEYBOARD_OUTPUT_MODE_LATIN,
 	KEYBOARD_OUTPUT_MODE_WINDOWS,
@@ -34,4 +36,4 @@ enum keyboard_output_mode {
 };
 
 void keyboard_init(void);
-void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id);
+void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint);

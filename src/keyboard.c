@@ -31,13 +31,12 @@
 #include <stdio.h>
 
 #define KEYBOARD_MODE_START (0x80)
-#define KEYBOARD_SITELEN_PONA_CODEPOINT_START (0xF1900U)
 #define KEYBOADRD_LOCK_CHANGE_TIMEOUT (100) // How long it takes to give up change of lock state. Unit depends on the polling frequency
 
 #define KEYHID_SFT (0x80) // Hold right shift if this flag exists
 const uint8_t keyboard_ascii_to_keycode[128] = {
 	// 0X
-	0, 0, 0, 0, 0, 0, 0, 0, HID_KEY_BACKSPACE, HID_KEY_TAB, HID_KEY_RETURN, 0, 0, HID_KEY_RETURN, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, HID_KEY_BACKSPACE, HID_KEY_TAB, HID_KEY_ENTER, 0, 0, HID_KEY_ENTER, 0, 0,
 	// 1X (The first 10 digits had been stolen for KEYPAD)
 	HID_KEY_KEYPAD_0, HID_KEY_KEYPAD_1, HID_KEY_KEYPAD_2, HID_KEY_KEYPAD_3,
 	HID_KEY_KEYPAD_4, HID_KEY_KEYPAD_5, HID_KEY_KEYPAD_6, HID_KEY_KEYPAD_7,
@@ -274,7 +273,7 @@ const char* KEYBOARD_WORDS_LATIN_MAPPING[] = {
 	"a", "akesi", "ala", "alasa", "ali",
 	"anpa", "ante", "anu", "awen", "e",
 	"en", "esun", "ijo", "ike", "ilo",
-	"insa", "jaki", "jan", "jelo", /*"jo"*/ "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?",
+	"insa", "jaki", "jan", "jelo", /*"jo"*/ "kijetesantakalu",
 };
 
 // Each word's short enough. It's probably not worth using memcpy(). Let's do it character-by-character.
@@ -307,14 +306,28 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 	}
 }
 
-void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id) {
+void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint) {
+	// Force latin mode for first 128 codepoints
+	if(codepoint <= 0x7F) {
+		mode = KEYBOARD_OUTPUT_MODE_LATIN;
+	}
 	keyboard_push_to_out_buffer(KEYBOARD_MODE_START+mode);
-	uint32_t codepoint = KEYBOARD_SITELEN_PONA_CODEPOINT_START+charcter_id;
 
 	switch(mode) {
 		case KEYBOARD_OUTPUT_MODE_LATIN:
-			for(size_t i=0; KEYBOARD_WORDS_LATIN_MAPPING[charcter_id][i]; i++) {
-				keyboard_push_to_out_buffer(KEYBOARD_WORDS_LATIN_MAPPING[charcter_id][i]);
+			if(codepoint <= 0x7F) {
+				// direct output - no conversion needed
+				keyboard_push_to_out_buffer(codepoint);
+			} else if(codepoint >= KEYBOARD_SITELEN_PONA_CODEPOINT_START &&
+				codepoint < KEYBOARD_SITELEN_PONA_CODEPOINT_START+sizeof(KEYBOARD_WORDS_LATIN_MAPPING)/sizeof(*KEYBOARD_WORDS_LATIN_MAPPING)) {
+				// Convert sitelen pona codepoint to sitelen Lasin
+				uint32_t charcter_id = codepoint-KEYBOARD_SITELEN_PONA_CODEPOINT_START;
+				for(size_t i=0; KEYBOARD_WORDS_LATIN_MAPPING[charcter_id][i]; i++) {
+					keyboard_push_to_out_buffer(KEYBOARD_WORDS_LATIN_MAPPING[charcter_id][i]);
+				}
+			} else {
+				// Unsupported codepoint. Let's output a questionmark.
+				keyboard_push_to_out_buffer('?');
 			}
 		break;
 		case KEYBOARD_OUTPUT_MODE_WINDOWS:
@@ -326,6 +339,7 @@ void keyboard_write_character(enum keyboard_output_mode mode, size_t charcter_id
 				base10_digits_reserved[base10_digits_index++] = (unparsed_number % 10);
 				unparsed_number /= 10;
 			}
+			keyboard_push_to_out_buffer(0x10); // Output a numpad 0 as prefix to tell Windows that unicode follows
 			for(size_t i=base10_digits_index; i-->0; ) { // Reverse iteration with unsigned integer i
 				keyboard_push_to_out_buffer(0x10+base10_digits_reserved[i]);
 			}

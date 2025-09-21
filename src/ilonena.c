@@ -52,6 +52,11 @@ int main() {
 
 	uint32_t last_update_tick = SysTick->CNT;
 	enum keyboard_output_mode mode = KEYBOARD_OUTPUT_MODE_LATIN;
+	const uint32_t codepoints[20] = {
+		'A', ',', '!', ' ', 'a', '\b',
+		0x1F595, 0x414, 0xFC, 0x5C4C, 0x20AC, 0x2192,
+		0xF1900U, 0xF1901U, 0xF1902U, 0xF1903U, 0xF1904U, 0xF1905U,
+		0xF1906U, '\n'};
 	while(1) {
 		uint32_t button_press_event = button_get_pressed_event();
 		for(size_t i=0; i<20; i++) {
@@ -61,7 +66,7 @@ int main() {
 						mode = 0;
 					}
 				} else {
-					keyboard_write_character(mode, i);
+					keyboard_write_codepoint(mode, codepoints[i]);
 				}
 			}
 		}
