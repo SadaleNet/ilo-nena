@@ -138,7 +138,7 @@ static const uint8_t config_descriptor[] = {  //Mostly stolen from a USB mouse I
 	0x81, //Endpoint Address (IN endpoint, endpoint #1)
 	0x03, //Attributes (Transfer type: Interrupt)
 	0x08,	0x00, //Size (8 bytes)
-	1, //Interval Number of milliseconds between polls.
+	3, //Interval Number of milliseconds between polls.
 };
 
 struct usb_string_descriptor_struct {
