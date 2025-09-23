@@ -34,6 +34,8 @@ if len(sys.argv) < 3:
 	print("{sys.argv[0]} <kreativekorp_ucsur_charts_sitelen.html> <wakalito-7-3-2.yml>")
 	exit(1)
 
+KEYBOARD_SITELEN_PONA_CODEPOINT_START = 0xF1900
+
 UNICODE_PATH = sys.argv[1]
 WAKALITO_PATH = sys.argv[2]
 word_to_codepoint = {}
@@ -52,21 +54,21 @@ with open(UNICODE_PATH) as f:
 with open(WAKALITO_PATH) as f:
 	wakalito_mapping = yaml.load(f, yaml.Loader)
 
-WAKALITO_KEY_VALUES = ' 123456qwertyasdfg'
+WAKALITO_KEY_VALUES = ' 123456qwertysdf'
 wakalito_reversed_mapping = {}
 
-def encode_trigger_as_u64(trigger):
+def encode_trigger_as_u24(trigger):
+	if len(trigger) > 6:
+		raise Exception(f"Trigger sequence too long. Unable to handle: {trigger}")
+
 	ret = 0
-	big_shift = 32
-	shift = 32-5
+	shift = 24-4
 	for c in trigger:
-		ret |= WAKALITO_KEY_VALUES.find(c) << (big_shift + shift)
-		shift -= 5
-		if shift < 0:
-			if big_shift == 0:
-				raise Exception(f"Trigger word too long. Unable to handle: {trigger}")
-			big_shift = 0
-			shift = 32-5
+		key_id = WAKALITO_KEY_VALUES.find(c)
+		if key_id == -1:
+			raise Exception(f"Trigger sequence contains invalid character. Unable to handle: {trigger}")
+		ret |= key_id << shift
+		shift -= 4
 	return ret
 
 for word in wakalito_mapping['matches']:
@@ -80,14 +82,39 @@ for word in wakalito_mapping['matches']:
 
 	if toki_pona_word_ideograph in word_to_codepoint:
 		for i in triggers:
-			encoded_trigger = encode_trigger_as_u64(i)
-			if encoded_trigger in wakalito_reversed_mapping:
-				raise Exception(f"Duplicate trigger word detected. Unable to handle: {word} vs {wakalito_reversed_mapping[encoded_trigger]}")
-			wakalito_reversed_mapping[encoded_trigger] = {"trigger": i, "word": word['replace'], "codepoint": word_to_codepoint[toki_pona_word_ideograph]}
+			encoded_trigger1 = encode_trigger_as_u24(i[0:6])
+			encoded_trigger2 = encode_trigger_as_u24(i[6:12])
+			index = tuple(map(lambda c: WAKALITO_KEY_VALUES.find(c), i))
+			if index in wakalito_reversed_mapping:
+				raise Exception(f"Duplicate trigger word detected. Unable to handle: {word} vs {wakalito_reversed_mapping[index]}")
+			wakalito_reversed_mapping[index] = {"trigger": i, "trigger_enc1": encoded_trigger1, "trigger_enc2": encoded_trigger2, "word": word['replace'], "codepoint": word_to_codepoint[toki_pona_word_ideograph]}
 	else:
 		print(f"unable to handle: {word}", file=sys.stderr)
 
+print("// This file is generated with generate_lookup_table.py. Do not manually modify.")
+print()
+
+print('#include "lookup.h"')
+print()
+print("// Coverts the vast majority of the characters. Each entry fits in 32bit.")
+print("const struct lookup_compact_entry LOOKUP_COMPACT_TABLE[] = {")
+
 wakalito_reversed_mapping_keys = sorted(wakalito_reversed_mapping)
 for k in wakalito_reversed_mapping_keys:
-	print(f"{{.input = {hex(k)}ULL, .codepoint={hex(wakalito_reversed_mapping[k]['codepoint'])}UL}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
+	if len(wakalito_reversed_mapping[k]['trigger']) <= 6:
+		print(f"\t{{.input = 0x{wakalito_reversed_mapping[k]['trigger_enc1']:06X}U, .sitelen_pona_id=0x{wakalito_reversed_mapping[k]['codepoint']-KEYBOARD_SITELEN_PONA_CODEPOINT_START:02X}U}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
 
+print("};")
+print()
+
+print("const struct lookup_double_entry LOOKUP_DOUBLE_TABLE[] = {")
+for k in wakalito_reversed_mapping_keys:
+	if len(wakalito_reversed_mapping[k]['trigger']) > 6 and len(wakalito_reversed_mapping[k]['trigger']) <= 12:
+		print(f"\t{{.input_upper = 0x{wakalito_reversed_mapping[k]['trigger_enc1']:06X}U, .input_lower = 0x{wakalito_reversed_mapping[k]['trigger_enc2']:06X}U, .sitelen_pona_id=0x{wakalito_reversed_mapping[k]['codepoint']-KEYBOARD_SITELEN_PONA_CODEPOINT_START:02X}U}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
+
+print("};")
+print()
+
+for k in wakalito_reversed_mapping_keys:
+	if len(wakalito_reversed_mapping[k]['trigger']) > 12:
+		print(f"// Unable to encode into table - trigger word too long: {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
