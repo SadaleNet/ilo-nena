@@ -34,12 +34,24 @@ if len(sys.argv) < 3:
 	print("{sys.argv[0]} <kreativekorp_ucsur_charts_sitelen.html> <wakalito-7-3-2.yml>")
 	exit(1)
 
+def c_style_escape(s):
+	return repr(s)[1:-1].replace('"', '\\\"')
+
+# code page 0. Fixed with sitelen pona's content
 KEYBOARD_SITELEN_PONA_CODEPOINT_START = 0xF1900
+
+# code page 1 and 2. The content are dynamically filled
+KEYBOARD_CODEPAGE_1_START = 0xFFFF0000
+KEYBOARD_CODEPAGE_2_START = 0xFFFF1000
+codepage_0_map = {} # maps codepoint to word
+codepage_1 = []
+codepage_2 = []
 
 UNICODE_PATH = sys.argv[1]
 WAKALITO_PATH = sys.argv[2]
 word_to_codepoint = {}
 
+# Read sitelen pona unicode mapping (codepage 0)
 with open(UNICODE_PATH) as f:
 	for line in f.readlines():
 		line = line.replace('\n', '')
@@ -49,27 +61,111 @@ with open(UNICODE_PATH) as f:
 		codepoint = int(matched.group(1), 16)
 		word = matched.group(2)
 		word_to_codepoint[word] = codepoint
+		if word.startswith('IDEOGRAPH '):
+			codepage_0_map[codepoint-KEYBOARD_SITELEN_PONA_CODEPOINT_START] = word.replace('IDEOGRAPH ','').lower()
 
-
+# read wakalito input method mapping
 with open(WAKALITO_PATH) as f:
 	wakalito_mapping = yaml.load(f, yaml.Loader)
 
+def process_output_word(word):
+	ret = None
+	if word == '':
+		raise Exception("Input word must not be empty")
+
+	if word == '/sp':
+		ret = '\u3000'
+
+	if ret == None:
+		sitelen_pona_phrase = ''
+		for w in word.strip().split(' '):
+			codepoint = word_to_codepoint.get(f"IDEOGRAPH {w.upper()}")
+			if codepoint is None:
+				sitelen_pona_phrase = None
+				break
+			sitelen_pona_phrase += chr(codepoint)
+
+		if sitelen_pona_phrase is not None:
+			ret = sitelen_pona_phrase
+
+	if ret == None:
+		ret = word
+
+	has_unicode = len([i for i in ret if ord(i) > 128]) > 0
+	return (has_unicode, ret)
+
+# maps between code page 1's content and their codepoint - ASCII string
+word_to_codepoint_codepage_1 = {}
+# maps between code page 2's content and their codepoint - unicoed string
+word_to_codepoint_codepage_2 = {}
+# add virtual codepoints for code page 1 and 2
+for word in wakalito_mapping['matches']:
+	w = word['replace']
+	if f"IDEOGRAPH {w.upper()}" not in word_to_codepoint:
+		has_unicode, string = process_output_word(w)
+		if not has_unicode:
+			word_to_codepoint_codepage_1[w] = len(codepage_1)
+			codepage_1.append(string)
+		else:
+			word_to_codepoint_codepage_2[w] = len(codepage_2)
+			codepage_2.append(string)
+
 WAKALITO_KEY_VALUES = ' 123456qwertysdf'
+WAKALITO_KEY_VALUES_FULL = ' 123456qwertyasdfg'
 wakalito_reversed_mapping = {}
+
+def encode_trigger_as_u52(trigger):
+	if len(trigger) > 12:
+		return 0
+
+	ret = 0
+	complex_mode = False
+	for c in trigger:
+		if c not in WAKALITO_KEY_VALUES:
+			if c not in WAKALITO_KEY_VALUES_FULL or len(trigger) > 10:
+				# Invalid input. Returning zero
+				return 0
+			complex_mode = True
+			break
+
+	if complex_mode:
+		ret |= (1 << 51)
+		shift = 50-5
+		for c in trigger:
+			ret |= WAKALITO_KEY_VALUES_FULL.find(c) << shift
+			shift -= 5
+	else:
+		shift = 48-4
+		for c in trigger:
+			key_id = WAKALITO_KEY_VALUES.find(c)
+			ret |= key_id << shift
+			shift -= 4
+
+	return ret
 
 def encode_trigger_as_u24(trigger):
 	if len(trigger) > 6:
-		raise Exception(f"Trigger sequence too long. Unable to handle: {trigger}")
+		return 0
 
 	ret = 0
 	shift = 24-4
 	for c in trigger:
 		key_id = WAKALITO_KEY_VALUES.find(c)
 		if key_id == -1:
-			raise Exception(f"Trigger sequence contains invalid character. Unable to handle: {trigger}")
+			return 0
 		ret |= key_id << shift
 		shift -= 4
 	return ret
+
+def get_codepage_and_codepoint(word):
+	toki_pona_word_ideograph = f"IDEOGRAPH {word.upper()}"
+	if toki_pona_word_ideograph in word_to_codepoint:
+		return (0, word_to_codepoint[toki_pona_word_ideograph]-KEYBOARD_SITELEN_PONA_CODEPOINT_START)
+	elif word in word_to_codepoint_codepage_1:
+		return (1, word_to_codepoint_codepage_1[word])
+	elif word in word_to_codepoint_codepage_2:
+		return (2, word_to_codepoint_codepage_2[word])
+	return None
 
 for word in wakalito_mapping['matches']:
 	if "trigger" in word:
@@ -78,43 +174,83 @@ for word in wakalito_mapping['matches']:
 		triggers = word["triggers"]
 	else:
 		raise Exception(f"Unable to handle this word due ot lack of trigger: {word}")
-	toki_pona_word_ideograph = f"IDEOGRAPH {word['replace'].upper()}"
+	codepage, codepoint = get_codepage_and_codepoint(word['replace'])
+	for i in triggers:
+		encoded_trigger_u24 = encode_trigger_as_u24(i) if codepage == 0 else 0
+		encoded_trigger_u52 = encode_trigger_as_u52(i)
+		if encoded_trigger_u52 == 0:
+			continue # Unable to encode. Skipping!
+		if encoded_trigger_u52 in wakalito_reversed_mapping:
+			raise Exception(f"Duplicate trigger word detected. Unable to handle. trigger: {i}")
+		wakalito_reversed_mapping[encoded_trigger_u52] = {"trigger": i, "trigger_u24": encoded_trigger_u24, "trigger_u52": encoded_trigger_u52, "word": c_style_escape(word['replace']), "codepage": codepage, "codepoint": codepoint}
 
-	if toki_pona_word_ideograph in word_to_codepoint:
-		for i in triggers:
-			encoded_trigger1 = encode_trigger_as_u24(i[0:6])
-			encoded_trigger2 = encode_trigger_as_u24(i[6:12])
-			index = tuple(map(lambda c: WAKALITO_KEY_VALUES.find(c), i))
-			if index in wakalito_reversed_mapping:
-				raise Exception(f"Duplicate trigger word detected. Unable to handle: {word} vs {wakalito_reversed_mapping[index]}")
-			wakalito_reversed_mapping[index] = {"trigger": i, "trigger_enc1": encoded_trigger1, "trigger_enc2": encoded_trigger2, "word": word['replace'], "codepoint": word_to_codepoint[toki_pona_word_ideograph]}
-	else:
-		print(f"unable to handle: {word}", file=sys.stderr)
-
-print("// This file is generated with generate_lookup_table.py. Do not manually modify.")
+print("// This file was generated with generate_lookup_table.py. Do not manually modify.")
+print("// This project's constrained by the flash size. Sorry for the unintuitive design!")
 print()
 
 print('#include "lookup.h"')
+print('#include <stdint.h>')
 print()
-print("// Coverts the vast majority of the characters. Each entry fits in 32bit.")
+
+print("// codepage 0 - sitelen pona")
+print(f"const uint32_t LOOKUP_CODEPAGE_0_START = 0x{KEYBOARD_SITELEN_PONA_CODEPOINT_START:08X}U;")
+print(f"const size_t LOOKUP_CODEPAGE_0_LENGTH = {max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1};")
+
+print("// codepage 1 - ASCII strings")
+print(f"const uint32_t LOOKUP_CODEPAGE_1_START = 0x{KEYBOARD_CODEPAGE_1_START:08X}U;")
+print(f"const size_t LOOKUP_CODEPAGE_1_LENGTH = {len(codepage_1)};")
+
+print("// codepage 2 - Unicode strings")
+print(f"const uint32_t LOOKUP_CODEPAGE_2_START = 0x{KEYBOARD_CODEPAGE_2_START:08X}U;")
+print(f"const size_t LOOKUP_CODEPAGE_2_LENGTH = {len(codepage_2)};")
+print()
+
+print("const char *LOOKUP_CODEPAGE_0[] = {")
+for i in range(max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1):
+	if i in codepage_0_map:
+		print(f'\t"{codepage_0_map[i]}",')
+	else:
+		print('\t"",')
+print("};")
+print()
+
+print("const char *LOOKUP_CODEPAGE_1[] = {")
+for i in codepage_1:
+	print(f'\t"{c_style_escape(i)}",')
+print("};")
+print()
+
+print("const uint32_t *LOOKUP_CODEPAGE_2[] = {")
+for i in codepage_2:
+	buf = "\t(const uint32_t[]){"
+	for c in i:
+		buf += f'0x{ord(c):08X}U,'
+	buf += "0},"
+	print(buf)
+print("};")
+print()
+
+print("// Covers the vast majority of the characters. Each entry fits in 32bit.")
 print("const struct lookup_compact_entry LOOKUP_COMPACT_TABLE[] = {")
 
 wakalito_reversed_mapping_keys = sorted(wakalito_reversed_mapping)
 for k in wakalito_reversed_mapping_keys:
-	if len(wakalito_reversed_mapping[k]['trigger']) <= 6:
-		print(f"\t{{.input = 0x{wakalito_reversed_mapping[k]['trigger_enc1']:06X}U, .sitelen_pona_id=0x{wakalito_reversed_mapping[k]['codepoint']-KEYBOARD_SITELEN_PONA_CODEPOINT_START:02X}U}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
+	if wakalito_reversed_mapping[k]['trigger_u24']:
+		print(f"\t{{.input = 0x{wakalito_reversed_mapping[k]['trigger_u24']:06X}U, .sitelen_pona_id=0x{wakalito_reversed_mapping[k]['codepoint']:02X}U}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
+
+print("};")
+print()
+print(f"const size_t LOOKUP_COMPACT_TABLE_LENGTH = sizeof(LOOKUP_COMPACT_TABLE)/sizeof(*LOOKUP_COMPACT_TABLE);")
+print()
+
+print("// Covers the other characters/strings that requires up to 12 input letters. Can encode Each entry is 64bit.")
+print("const struct lookup_full_entry LOOKUP_FULL_TABLE[] = {")
+for k in wakalito_reversed_mapping_keys:
+	if wakalito_reversed_mapping[k]['trigger_u24'] == 0 and wakalito_reversed_mapping[k]['trigger_u52']:
+		print(f"\t{{.input_u52 = 0x{wakalito_reversed_mapping[k]['trigger_u52']:013X}ULL, .codepage={wakalito_reversed_mapping[k]['codepage']}, .code_id=0x{wakalito_reversed_mapping[k]['codepoint']:02X}U}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
 
 print("};")
 print()
 
-print("const struct lookup_double_entry LOOKUP_DOUBLE_TABLE[] = {")
-for k in wakalito_reversed_mapping_keys:
-	if len(wakalito_reversed_mapping[k]['trigger']) > 6 and len(wakalito_reversed_mapping[k]['trigger']) <= 12:
-		print(f"\t{{.input_upper = 0x{wakalito_reversed_mapping[k]['trigger_enc1']:06X}U, .input_lower = 0x{wakalito_reversed_mapping[k]['trigger_enc2']:06X}U, .sitelen_pona_id=0x{wakalito_reversed_mapping[k]['codepoint']-KEYBOARD_SITELEN_PONA_CODEPOINT_START:02X}U}}, // {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")
-
-print("};")
+print(f"const size_t LOOKUP_FULL_TABLE_LENGTH = sizeof(LOOKUP_FULL_TABLE)/sizeof(*LOOKUP_FULL_TABLE);")
 print()
-
-for k in wakalito_reversed_mapping_keys:
-	if len(wakalito_reversed_mapping[k]['trigger']) > 12:
-		print(f"// Unable to encode into table - trigger word too long: {wakalito_reversed_mapping[k]['trigger']} -> {wakalito_reversed_mapping[k]['word']}")

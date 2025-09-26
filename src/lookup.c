@@ -25,14 +25,61 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "lookup.h"
-#include "lookup_generated.h"
 #include "keyboard.h"
 #include <stdlib.h>
 #include <stdint.h>
 
+uint64_t encode_input_buffer_as_u52(uint8_t input_buffer[12], size_t input_buffer_length) {
+	uint64_t ret_u52 = 0;
+	if(input_buffer_length > 12) {
+		// Input sequence too long. Returning 0
+		return 0;
+	}
+
+	// Determine if complex mode is required
+	for(size_t i=0; i<input_buffer_length; i++) {
+		if(input_buffer[i] == ILONENA_KEY_A || input_buffer[i] >= ILONENA_KEY_G) {
+			ret_u52 |= LOOKUP_FULL_ENTRY_COMPLEX_MODE;
+			if(input_buffer_length > 10) {
+				// Input sequence too long for complex mode. Returning 0
+				return 0;
+			}
+			break;
+		}
+	}
+
+	if(ret_u52 & LOOKUP_FULL_ENTRY_COMPLEX_MODE) {
+		// Complex mode encoding
+		uint64_t shift = 50-5;
+		for(size_t i=0; i<input_buffer_length; i++) {
+			ret_u52 |= (uint64_t)input_buffer[i] << shift;
+			shift -= 5;
+		}
+	} else {
+		// Simple mode encoding
+		uint64_t shift = 48-4;
+		for(size_t i=0; i<input_buffer_length; i++) {
+			uint32_t key_id = input_buffer[i];
+			if(key_id > ILONENA_KEY_A) {
+				key_id--;
+			}
+			ret_u52 |= (uint64_t)key_id << shift;
+			shift -= 4;
+		}
+	}
+
+	return ret_u52;
+}
+
 static uint32_t encode_input_buffer_as_u24(uint8_t input_buffer[6], size_t input_buffer_length) {
+	if(input_buffer_length > 6) {
+		// Invalid input. Returning 0.
+		return 0;
+	}
+
 	uint32_t ret = 0;
 	uint64_t shift = 24-4;
+
 	for(size_t i=0; i<input_buffer_length; i++) {
 		uint32_t key_id = input_buffer[i];
 		if(key_id == ILONENA_KEY_A || key_id >= ILONENA_KEY_G) {
@@ -52,21 +99,38 @@ uint32_t lookup_search(uint8_t input_buffer[12], size_t input_buffer_length) {
 		return 0;
 	}
 
-	if(input_buffer_length < 6) {
-		uint32_t target = encode_input_buffer_as_u24(input_buffer, input_buffer_length);
-		for(size_t i=0; i<sizeof(LOOKUP_COMPACT_TABLE)/sizeof(*LOOKUP_COMPACT_TABLE); i++) {
+	uint32_t ret = 0;
+	uint32_t target = encode_input_buffer_as_u24(input_buffer, input_buffer_length);
+	// Only check COMPACT_TABLE if the input criteria has been met (such that encode_input_buffer_as_u24() returns a valid value)
+	if(target != 0) {
+		for(size_t i=0; i<LOOKUP_COMPACT_TABLE_LENGTH; i++) {
 			if(target == LOOKUP_COMPACT_TABLE[i].input) {
-				return KEYBOARD_SITELEN_PONA_CODEPOINT_START + LOOKUP_COMPACT_TABLE[i].sitelen_pona_id;
-			}
-		}
-	} else {
-		uint32_t target_upper = encode_input_buffer_as_u24(input_buffer, 6);
-		uint32_t target_lower = encode_input_buffer_as_u24(&input_buffer[6], input_buffer_length-6);
-		for(size_t i=0; i<sizeof(LOOKUP_DOUBLE_TABLE)/sizeof(*LOOKUP_DOUBLE_TABLE); i++) {
-			if(target_upper == LOOKUP_DOUBLE_TABLE[i].input_upper && target_lower == LOOKUP_DOUBLE_TABLE[i].input_lower) {
-				return KEYBOARD_SITELEN_PONA_CODEPOINT_START + LOOKUP_DOUBLE_TABLE[i].sitelen_pona_id;
+				ret = LOOKUP_CODEPAGE_0_START + LOOKUP_COMPACT_TABLE[i].sitelen_pona_id;
 			}
 		}
 	}
-	return 0;
+
+	// Couldn't find the entry in LOOKUP_COMPACT_TABLE. Let's check the other more complicated table
+	if(!ret) {
+		uint64_t target = encode_input_buffer_as_u52(input_buffer, input_buffer_length);
+		for(size_t i=0; i<LOOKUP_FULL_TABLE_LENGTH; i++) {
+			if(target == LOOKUP_FULL_TABLE[i].input_u52) {
+				switch(LOOKUP_FULL_TABLE[i].codepage) {
+					case 0:
+						ret = LOOKUP_CODEPAGE_0_START + LOOKUP_FULL_TABLE[i].code_id;
+					break;
+					case 1:
+						ret = LOOKUP_CODEPAGE_1_START + LOOKUP_FULL_TABLE[i].code_id;
+					break;
+					case 2:
+						ret = LOOKUP_CODEPAGE_2_START + LOOKUP_FULL_TABLE[i].code_id;
+					break;
+					case 3:
+						ret = 0; // Reserved for future use
+					break;
+				}
+			}
+		}
+	}
+	return ret;
 }

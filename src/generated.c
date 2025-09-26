@@ -1,8 +1,215 @@
-// This file is generated with generate_lookup_table.py. Do not manually modify.
+// This file was generated with generate_lookup_table.py. Do not manually modify.
+// This project's constrained by the flash size. Sorry for the unintuitive design!
 
 #include "lookup.h"
+#include <stdint.h>
 
-// Coverts the vast majority of the characters. Each entry fits in 32bit.
+// codepage 0 - sitelen pona
+const uint32_t LOOKUP_CODEPAGE_0_START = 0x000F1900U;
+const size_t LOOKUP_CODEPAGE_0_LENGTH = 164;
+// codepage 1 - ASCII strings
+const uint32_t LOOKUP_CODEPAGE_1_START = 0xFFFF0000U;
+const size_t LOOKUP_CODEPAGE_1_LENGTH = 19;
+// codepage 2 - Unicode strings
+const uint32_t LOOKUP_CODEPAGE_2_START = 0xFFFF1000U;
+const size_t LOOKUP_CODEPAGE_2_LENGTH = 3;
+
+const char *LOOKUP_CODEPAGE_0[] = {
+	"a",
+	"akesi",
+	"ala",
+	"alasa",
+	"ale",
+	"anpa",
+	"ante",
+	"anu",
+	"awen",
+	"e",
+	"en",
+	"esun",
+	"ijo",
+	"ike",
+	"ilo",
+	"insa",
+	"jaki",
+	"jan",
+	"jelo",
+	"jo",
+	"kala",
+	"kalama",
+	"kama",
+	"kasi",
+	"ken",
+	"kepeken",
+	"kili",
+	"kiwen",
+	"ko",
+	"kon",
+	"kule",
+	"kulupu",
+	"kute",
+	"la",
+	"lape",
+	"laso",
+	"lawa",
+	"len",
+	"lete",
+	"li",
+	"lili",
+	"linja",
+	"lipu",
+	"loje",
+	"lon",
+	"luka",
+	"lukin",
+	"lupa",
+	"ma",
+	"mama",
+	"mani",
+	"meli",
+	"mi",
+	"mije",
+	"moku",
+	"moli",
+	"monsi",
+	"mu",
+	"mun",
+	"musi",
+	"mute",
+	"nanpa",
+	"nasa",
+	"nasin",
+	"nena",
+	"ni",
+	"nimi",
+	"noka",
+	"o",
+	"olin",
+	"ona",
+	"open",
+	"pakala",
+	"pali",
+	"palisa",
+	"pan",
+	"pana",
+	"pi",
+	"pilin",
+	"pimeja",
+	"pini",
+	"pipi",
+	"poka",
+	"poki",
+	"pona",
+	"pu",
+	"sama",
+	"seli",
+	"selo",
+	"seme",
+	"sewi",
+	"sijelo",
+	"sike",
+	"sin",
+	"sina",
+	"sinpin",
+	"sitelen",
+	"sona",
+	"soweli",
+	"suli",
+	"suno",
+	"supa",
+	"suwi",
+	"tan",
+	"taso",
+	"tawa",
+	"telo",
+	"tenpo",
+	"toki",
+	"tomo",
+	"tu",
+	"unpa",
+	"uta",
+	"utala",
+	"walo",
+	"wan",
+	"waso",
+	"wawa",
+	"weka",
+	"wile",
+	"namako",
+	"kin",
+	"oko",
+	"kipisi",
+	"leko",
+	"monsuta",
+	"tonsi",
+	"jasima",
+	"kijetesantakalu",
+	"soko",
+	"meso",
+	"epiku",
+	"kokosila",
+	"lanpan",
+	"n",
+	"misikeke",
+	"ku",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"pake",
+	"apeja",
+	"majuna",
+	"powe",
+};
+
+const char *LOOKUP_CODEPAGE_1[] = {
+	"\n",
+	"-",
+	"\"",
+	".",
+	"__",
+	"...",
+	":)",
+	":(",
+	":|",
+	":v",
+	"oke",
+	"isipin",
+	"kapesi",
+	"kiki",
+	"linluwi",
+	"mulapisu",
+	"Pingo",
+	"unu",
+	"wa",
+};
+
+const uint32_t *LOOKUP_CODEPAGE_2[] = {
+	(const uint32_t[]){0x00003000U,0},
+	(const uint32_t[]){0x000F1934U,0x000F1961U,0x000F1902U,0},
+	(const uint32_t[]){0x000F1900U,0x000F1900U,0x000F1900U,0},
+};
+
+// Covers the vast majority of the characters. Each entry fits in 32bit.
 const struct lookup_compact_entry LOOKUP_COMPACT_TABLE[] = {
 	{.input = 0x100000U, .sitelen_pona_id=0x21U}, // 1 -> la
 	{.input = 0x110000U, .sitelen_pona_id=0x3AU}, // 11 -> mun
@@ -257,9 +464,61 @@ const struct lookup_compact_entry LOOKUP_COMPACT_TABLE[] = {
 	{.input = 0xFE0000U, .sitelen_pona_id=0x61U}, // fd -> sona
 };
 
-const struct lookup_double_entry LOOKUP_DOUBLE_TABLE[] = {
-	{.input_upper = 0x133888U, .input_lower = 0x800000U, .sitelen_pona_id=0x62U}, // 133wwww -> soweli
-	{.input_upper = 0x188883U, .input_lower = 0x300000U, .sitelen_pona_id=0x62U}, // 1wwww33 -> soweli
-	{.input_upper = 0x213388U, .input_lower = 0x880000U, .sitelen_pona_id=0x62U}, // 2133wwww -> soweli
-	{.input_upper = 0x98885AU, .input_lower = 0x888330U, .sitelen_pona_id=0x80U}, // ewww5rwww33 -> kijetesantakalu
+const size_t LOOKUP_COMPACT_TABLE_LENGTH = sizeof(LOOKUP_COMPACT_TABLE)/sizeof(*LOOKUP_COMPACT_TABLE);
+
+// Covers the other characters/strings that requires up to 12 input letters. Can encode Each entry is 64bit.
+const struct lookup_full_entry LOOKUP_FULL_TABLE[] = {
+	{.input_u52 = 0x0112A00000000ULL, .codepage=1, .code_id=0x11U}, // 112r -> unu
+	{.input_u52 = 0x011A200000000ULL, .codepage=1, .code_id=0x11U}, // 11r2 -> unu
+	{.input_u52 = 0x0133888800000ULL, .codepage=0, .code_id=0x62U}, // 133wwww -> soweli
+	{.input_u52 = 0x0188883300000ULL, .codepage=0, .code_id=0x62U}, // 1wwww33 -> soweli
+	{.input_u52 = 0x0200000000000ULL, .codepage=1, .code_id=0x04U}, // 2 -> __
+	{.input_u52 = 0x0213388880000ULL, .codepage=0, .code_id=0x62U}, // 2133wwww -> soweli
+	{.input_u52 = 0x02A1100000000ULL, .codepage=1, .code_id=0x11U}, // 2r11 -> unu
+	{.input_u52 = 0x02A9280000000ULL, .codepage=1, .code_id=0x0CU}, // 2re2w -> kapesi
+	{.input_u52 = 0x02A9820000000ULL, .codepage=1, .code_id=0x0CU}, // 2rew2 -> kapesi
+	{.input_u52 = 0x02A9990000000ULL, .codepage=1, .code_id=0x0FU}, // 2reee -> mulapisu
+	{.input_u52 = 0x0300000000000ULL, .codepage=1, .code_id=0x03U}, // 3 -> .
+	{.input_u52 = 0x0333000000000ULL, .codepage=1, .code_id=0x05U}, // 333 -> ...
+	{.input_u52 = 0x0489000000000ULL, .codepage=1, .code_id=0x0AU}, // 4we -> oke
+	{.input_u52 = 0x0666000000000ULL, .codepage=1, .code_id=0x00U}, // 666 -> \n
+	{.input_u52 = 0x06C0000000000ULL, .codepage=2, .code_id=0x00U}, // 6y -> /sp
+	{.input_u52 = 0x0821000000000ULL, .codepage=1, .code_id=0x10U}, // w21 -> Pingo
+	{.input_u52 = 0x0828333B58000ULL, .codepage=1, .code_id=0x0EU}, // w2w333t5w -> linluwi
+	{.input_u52 = 0x08288333B5000ULL, .codepage=1, .code_id=0x0EU}, // w2ww333t5 -> linluwi
+	{.input_u52 = 0x08288B5333000ULL, .codepage=1, .code_id=0x0EU}, // w2wwt5333 -> linluwi
+	{.input_u52 = 0x0828B58333000ULL, .codepage=1, .code_id=0x0EU}, // w2wt5w333 -> linluwi
+	{.input_u52 = 0x0838300000000ULL, .codepage=2, .code_id=0x02U}, // w3w3 -> a a a 
+	{.input_u52 = 0x08BB000000000ULL, .codepage=1, .code_id=0x12U}, // wtt -> wa
+	{.input_u52 = 0x08E4000000000ULL, .codepage=2, .code_id=0x01U}, // wd4 -> mi sona ala
+	{.input_u52 = 0x0922F00000000ULL, .codepage=1, .code_id=0x0BU}, // e22f -> isipin
+	{.input_u52 = 0x09282A0000000ULL, .codepage=1, .code_id=0x0CU}, // e2w2r -> kapesi
+	{.input_u52 = 0x0928A20000000ULL, .codepage=1, .code_id=0x0CU}, // e2wr2 -> kapesi
+	{.input_u52 = 0x0948000000000ULL, .codepage=1, .code_id=0x0AU}, // e4w -> oke
+	{.input_u52 = 0x09822A0000000ULL, .codepage=1, .code_id=0x0CU}, // ew22r -> kapesi
+	{.input_u52 = 0x0982A20000000ULL, .codepage=1, .code_id=0x0CU}, // ew2r2 -> kapesi
+	{.input_u52 = 0x098885A888330ULL, .codepage=0, .code_id=0x80U}, // ewww5rwww33 -> kijetesantakalu
+	{.input_u52 = 0x09992A0000000ULL, .codepage=1, .code_id=0x0FU}, // eee2r -> mulapisu
+	{.input_u52 = 0x0999A20000000ULL, .codepage=1, .code_id=0x0FU}, // eeer2 -> mulapisu
+	{.input_u52 = 0x09F2200000000ULL, .codepage=1, .code_id=0x0BU}, // ef22 -> isipin
+	{.input_u52 = 0x0A21100000000ULL, .codepage=1, .code_id=0x11U}, // r211 -> unu
+	{.input_u52 = 0x0A29280000000ULL, .codepage=1, .code_id=0x0CU}, // r2e2w -> kapesi
+	{.input_u52 = 0x0A29820000000ULL, .codepage=1, .code_id=0x0CU}, // r2ew2 -> kapesi
+	{.input_u52 = 0x0A29990000000ULL, .codepage=1, .code_id=0x0FU}, // r2eee -> mulapisu
+	{.input_u52 = 0x0AAA444000000ULL, .codepage=1, .code_id=0x0DU}, // rrr444 -> kiki
+	{.input_u52 = 0x0AAAA44440000ULL, .codepage=1, .code_id=0x0DU}, // rrrr4444 -> kiki
+	{.input_u52 = 0x0F92200000000ULL, .codepage=1, .code_id=0x0BU}, // fe22 -> isipin
+	{.input_u52 = 0x9A10000000000ULL, .codepage=1, .code_id=0x06U}, // a1 -> :)
+	{.input_u52 = 0x9A20000000000ULL, .codepage=1, .code_id=0x08U}, // a2 -> :|
+	{.input_u52 = 0x9A40000000000ULL, .codepage=1, .code_id=0x09U}, // a4 -> :v
+	{.input_u52 = 0x9A50000000000ULL, .codepage=1, .code_id=0x07U}, // a5 -> :(
+	{.input_u52 = 0x9A60000000000ULL, .codepage=1, .code_id=0x07U}, // a6 -> :(
+	{.input_u52 = 0x9A80000000000ULL, .codepage=1, .code_id=0x08U}, // aw -> :|
+	{.input_u52 = 0x9AB0000000000ULL, .codepage=1, .code_id=0x06U}, // at -> :)
+	{.input_u52 = 0x9AC0000000000ULL, .codepage=1, .code_id=0x06U}, // ay -> :)
+	{.input_u52 = 0x9AD0000000000ULL, .codepage=1, .code_id=0x01U}, // aa -> -
+	{.input_u52 = 0xA310000000000ULL, .codepage=1, .code_id=0x02U}, // gg -> \"
 };
+
+const size_t LOOKUP_FULL_TABLE_LENGTH = sizeof(LOOKUP_FULL_TABLE)/sizeof(*LOOKUP_FULL_TABLE);
+

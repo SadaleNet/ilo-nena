@@ -24,6 +24,7 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "lookup.h"
 #include "keyboard.h"
 
 #include "ch32fun.h"
@@ -317,13 +318,6 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 	}
 }
 
-const char* KEYBOARD_WORDS_LATIN_MAPPING[] = {
-	"a", "akesi", "ala", "alasa", "ali",
-	"anpa", "ante", "anu", "awen", "e",
-	"en", "esun", "ijo", "ike", "ilo",
-	"insa", "jaki", "jan", "jelo", /*"jo"*/ "kijetesantakalu",
-};
-
 // Push a mode or ASCII key into the output buffer
 static void keyboard_push_to_out_buffer(uint8_t key_id) {
 	asm volatile ("" ::: "memory");
@@ -368,12 +362,12 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			if(codepoint <= 0x7F) {
 				// direct output - no conversion needed
 				keyboard_push_to_out_buffer(codepoint);
-			} else if(codepoint >= KEYBOARD_SITELEN_PONA_CODEPOINT_START &&
-				codepoint < KEYBOARD_SITELEN_PONA_CODEPOINT_START+sizeof(KEYBOARD_WORDS_LATIN_MAPPING)/sizeof(*KEYBOARD_WORDS_LATIN_MAPPING)) {
+			} else if(codepoint >= LOOKUP_CODEPAGE_0_START &&
+				codepoint < LOOKUP_CODEPAGE_0_START+LOOKUP_CODEPAGE_0_LENGTH) {
 				// Convert sitelen pona codepoint to sitelen Lasin
-				uint32_t charcter_id = codepoint-KEYBOARD_SITELEN_PONA_CODEPOINT_START;
-				for(size_t i=0; KEYBOARD_WORDS_LATIN_MAPPING[charcter_id][i]; i++) {
-					keyboard_push_to_out_buffer(KEYBOARD_WORDS_LATIN_MAPPING[charcter_id][i]);
+				uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_0_START;
+				for(size_t i=0; LOOKUP_CODEPAGE_0[charcter_id][i]; i++) {
+					keyboard_push_to_out_buffer(LOOKUP_CODEPAGE_0[charcter_id][i]);
 				}
 			} else {
 				// Unsupported codepoint. Let's output a questionmark.

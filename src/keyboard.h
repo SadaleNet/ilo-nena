@@ -25,7 +25,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdint.h>
-#define KEYBOARD_SITELEN_PONA_CODEPOINT_START (0xF1900U)
 
 enum keyboard_output_mode {
 	KEYBOARD_OUTPUT_MODE_LATIN,
