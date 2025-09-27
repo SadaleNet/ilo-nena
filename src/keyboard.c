@@ -349,6 +349,17 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 	}
 }
 
+static void keyboard_write_ascii_string(uint8_t codepage, size_t character_id) {
+	const char *str = lookup_get_ascii_string(codepage, character_id);
+	while(*str) {
+		keyboard_push_to_out_buffer(*str);
+		str++;
+	}
+	if(*(str-1) >= 'a' && *(str-1) <= 'z') {
+		keyboard_push_to_out_buffer(' '); // Add a space after the end of the word
+	}
+}
+
 void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint) {
 	if(codepoint <= 0x7F || (codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH)) {
 		// Force latin mode for first 128 codepoints (ASCII) and for codepage 1 (ASCII string)
@@ -356,8 +367,10 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 	} else if (codepoint >= LOOKUP_CODEPAGE_2_START && codepoint < LOOKUP_CODEPAGE_2_START+LOOKUP_CODEPAGE_2_LENGTH) {
 		// For codepage 2, type out each of the unicode codepoint inside the array one-by-one
 		uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_2_START;
-		for(size_t i=0; LOOKUP_CODEPAGE_2[charcter_id][i]; i++) {
-			keyboard_write_codepoint(mode, LOOKUP_CODEPAGE_2[charcter_id][i]);
+		const uint32_t *str = lookup_get_unicode_string(2, charcter_id);
+		while(*str) {
+			keyboard_write_codepoint(mode, *str);
+			str++;
 		}
 		return;
 	}
@@ -372,25 +385,11 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			} else if(codepoint >= LOOKUP_CODEPAGE_0_START &&
 				codepoint < LOOKUP_CODEPAGE_0_START+LOOKUP_CODEPAGE_0_LENGTH) {
 				// Convert sitelen pona codepoint to sitelen Lasin
-				uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_0_START;
-				size_t i=0;
-				for(; LOOKUP_CODEPAGE_0[charcter_id][i]; i++) {
-					keyboard_push_to_out_buffer(LOOKUP_CODEPAGE_0[charcter_id][i]);
-				}
-				if(LOOKUP_CODEPAGE_0[charcter_id][i-1] >= 'a' && LOOKUP_CODEPAGE_0[charcter_id][i-1] <= 'z') {
-					keyboard_push_to_out_buffer(' '); // Add a space after the end of the word
-				}
+				keyboard_write_ascii_string(0, codepoint-LOOKUP_CODEPAGE_0_START);
 			} else if(codepoint >= LOOKUP_CODEPAGE_1_START &&
 				codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH) {
-				// Type out the ASCII string
-				size_t i=0;
-				uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_1_START;
-				for(; LOOKUP_CODEPAGE_1[charcter_id][i]; i++) {
-					keyboard_push_to_out_buffer(LOOKUP_CODEPAGE_1[charcter_id][i]);
-				}
-				if(LOOKUP_CODEPAGE_1[charcter_id][i-1] >= 'a' && LOOKUP_CODEPAGE_1[charcter_id][i-1] <= 'z') {
-					keyboard_push_to_out_buffer(' '); // Add a space after the end of the word
-				}
+				// Convert codepage 1 codepoint to sitelen Lasin
+				keyboard_write_ascii_string(1, codepoint-LOOKUP_CODEPAGE_1_START);
 			} else {
 				// Unsupported codepoint. Let's output a questionmark.
 				keyboard_push_to_out_buffer('?');

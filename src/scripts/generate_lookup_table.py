@@ -232,19 +232,22 @@ print(f"const uint32_t LOOKUP_CODEPAGE_2_START = 0x{KEYBOARD_CODEPAGE_2_START:08
 print(f"const size_t LOOKUP_CODEPAGE_2_LENGTH = {len(codepage_2)};")
 print()
 
-print("const char *LOOKUP_CODEPAGE_0[] = {")
-for i in range(max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1):
+print("const char *LOOKUP_CODEPAGE_0 = ")
+codepage_0_size = max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1
+for i in range(codepage_0_size):
+	null_terminator = "\\0" if i < codepage_0_size-1 else ""
 	if i in codepage_0_map:
-		print(f'\t"{codepage_0_map[i]}",')
+		print(f'\t"{codepage_0_map[i]}{null_terminator}"')
 	else:
-		print('\t"",')
-print("};")
+		print(f'\t"{null_terminator}"')
+print(";")
 print()
 
-print("const char *LOOKUP_CODEPAGE_1[] = {")
-for i in codepage_1:
-	print(f'\t"{c_style_escape(i)}",')
-print("};")
+print("const char *LOOKUP_CODEPAGE_1 = ")
+for i, w in enumerate(codepage_1):
+	null_terminator = "\\0" if i < len(codepage_1)-1 else ""
+	print(f'\t"{c_style_escape(w)}{null_terminator}"')
+print(";")
 print()
 
 print("const uint32_t *LOOKUP_CODEPAGE_2[] = {")

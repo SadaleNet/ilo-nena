@@ -74,6 +74,8 @@ struct __attribute__((__packed__)) lookup_full_entry {
 };
 
 uint32_t lookup_search(uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX], size_t input_buffer_length);
+const char* lookup_get_ascii_string(uint8_t codepage, size_t index);
+const uint32_t* lookup_get_unicode_string(uint8_t codepage, size_t index);
 
 // These variables are defined in generated.c
 extern const uint32_t LOOKUP_CODEPAGE_0_START;
@@ -82,8 +84,8 @@ extern const uint32_t LOOKUP_CODEPAGE_1_START;
 extern const size_t LOOKUP_CODEPAGE_1_LENGTH;
 extern const uint32_t LOOKUP_CODEPAGE_2_START;
 extern const size_t LOOKUP_CODEPAGE_2_LENGTH;
-extern const char *LOOKUP_CODEPAGE_0[];
-extern const char *LOOKUP_CODEPAGE_1[];
+extern const char *LOOKUP_CODEPAGE_0;
+extern const char *LOOKUP_CODEPAGE_1;
 extern const uint32_t *LOOKUP_CODEPAGE_2[];
 
 extern const struct lookup_compact_entry LOOKUP_COMPACT_TABLE[];

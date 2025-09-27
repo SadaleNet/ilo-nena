@@ -134,3 +134,30 @@ uint32_t lookup_search(uint8_t input_buffer[12], size_t input_buffer_length) {
 	}
 	return ret;
 }
+
+const char* lookup_get_ascii_string(uint8_t codepage, size_t index) {
+	const char *ret = NULL;
+	switch(codepage) {
+		case 0:
+			ret = LOOKUP_CODEPAGE_0;
+		break;
+		case 1:
+			ret = LOOKUP_CODEPAGE_1;
+		break;
+		default:
+			return NULL;
+	}
+
+	// Scroll past #index amount of NULL terminators, then return the string
+	while(index--) {
+		while(*ret++);
+	}
+	return ret;
+}
+
+const uint32_t* lookup_get_unicode_string(uint8_t codepage, size_t index) {
+	if(codepage == 2) {
+		return LOOKUP_CODEPAGE_2[index];
+	}
+	return NULL;
+}
