@@ -350,9 +350,16 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 }
 
 void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint) {
-	// Force latin mode for first 128 codepoints
-	if(codepoint <= 0x7F) {
+	if(codepoint <= 0x7F || (codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH)) {
+		// Force latin mode for first 128 codepoints (ASCII) and for codepage 1 (ASCII string)
 		mode = KEYBOARD_OUTPUT_MODE_LATIN;
+	} else if (codepoint >= LOOKUP_CODEPAGE_2_START && codepoint < LOOKUP_CODEPAGE_2_START+LOOKUP_CODEPAGE_2_LENGTH) {
+		// For codepage 2, type out each of the unicode codepoint inside the array one-by-one
+		uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_2_START;
+		for(size_t i=0; LOOKUP_CODEPAGE_2[charcter_id][i]; i++) {
+			keyboard_write_codepoint(mode, LOOKUP_CODEPAGE_2[charcter_id][i]);
+		}
+		return;
 	}
 	// Send start of packet with mode information
 	keyboard_push_to_out_buffer(KEYBOARD_MODE_START+mode);
@@ -366,8 +373,23 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 				codepoint < LOOKUP_CODEPAGE_0_START+LOOKUP_CODEPAGE_0_LENGTH) {
 				// Convert sitelen pona codepoint to sitelen Lasin
 				uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_0_START;
-				for(size_t i=0; LOOKUP_CODEPAGE_0[charcter_id][i]; i++) {
+				size_t i=0;
+				for(; LOOKUP_CODEPAGE_0[charcter_id][i]; i++) {
 					keyboard_push_to_out_buffer(LOOKUP_CODEPAGE_0[charcter_id][i]);
+				}
+				if(LOOKUP_CODEPAGE_0[charcter_id][i-1] >= 'a' && LOOKUP_CODEPAGE_0[charcter_id][i-1] <= 'z') {
+					keyboard_push_to_out_buffer(' '); // Add a space after the end of the word
+				}
+			} else if(codepoint >= LOOKUP_CODEPAGE_1_START &&
+				codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH) {
+				// Type out the ASCII string
+				size_t i=0;
+				uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_1_START;
+				for(; LOOKUP_CODEPAGE_1[charcter_id][i]; i++) {
+					keyboard_push_to_out_buffer(LOOKUP_CODEPAGE_1[charcter_id][i]);
+				}
+				if(LOOKUP_CODEPAGE_1[charcter_id][i-1] >= 'a' && LOOKUP_CODEPAGE_1[charcter_id][i-1] <= 'z') {
+					keyboard_push_to_out_buffer(' '); // Add a space after the end of the word
 				}
 			} else {
 				// Unsupported codepoint. Let's output a questionmark.
