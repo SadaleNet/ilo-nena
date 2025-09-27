@@ -51,6 +51,13 @@ UNICODE_PATH = sys.argv[1]
 WAKALITO_PATH = sys.argv[2]
 word_to_codepoint = {}
 
+SYMBOL_MAP = {
+	'START OF CARTOUCHE': '[',
+	'END OF CARTOUCHE': ']',
+	'MIDDLE DOT': '.',
+	'COLON': ':',
+}
+
 # Read sitelen pona unicode mapping (codepage 0)
 with open(UNICODE_PATH) as f:
 	for line in f.readlines():
@@ -60,13 +67,34 @@ with open(UNICODE_PATH) as f:
 			continue
 		codepoint = int(matched.group(1), 16)
 		word = matched.group(2)
-		word_to_codepoint[word] = codepoint
 		if word.startswith('IDEOGRAPH '):
-			codepage_0_map[codepoint-KEYBOARD_SITELEN_PONA_CODEPOINT_START] = word.replace('IDEOGRAPH ','').lower()
+			processed_word = word.replace('IDEOGRAPH ','').lower()
+			word_to_codepoint[processed_word] = codepoint
+			codepage_0_map[codepoint-KEYBOARD_SITELEN_PONA_CODEPOINT_START] = processed_word
+		elif word in SYMBOL_MAP.keys():
+			symbol = SYMBOL_MAP[word]
+			word_to_codepoint[symbol] = codepoint
+			codepage_0_map[codepoint-KEYBOARD_SITELEN_PONA_CODEPOINT_START] = symbol
+
 
 # read wakalito input method mapping
 with open(WAKALITO_PATH) as f:
 	wakalito_mapping = yaml.load(f, yaml.Loader)
+
+symbols_defined = {c:False for c in ".[]:,"}
+
+
+# Add a few special symbols that might have not been specified in the yml file
+for word in wakalito_mapping['matches'][:]:
+	if word.get('trigger') in ['3', '6', 'y', 'a', 'g']:
+		wakalito_mapping['matches'].remove(word)	
+
+wakalito_mapping['matches'].append({'trigger': '3', 'replace': '.', 'word': True})
+wakalito_mapping['matches'].append({'trigger': '6', 'replace': '[', 'word': True})
+wakalito_mapping['matches'].append({'trigger': 'y', 'replace': ']', 'word': True})
+wakalito_mapping['matches'].append({'trigger': 'a', 'replace': ':', 'word': True})
+wakalito_mapping['matches'].append({'trigger': 'g', 'replace': ',', 'word': True})
+
 
 def process_output_word(word):
 	ret = None
@@ -79,7 +107,7 @@ def process_output_word(word):
 	if ret == None:
 		sitelen_pona_phrase = ''
 		for w in word.strip().split(' '):
-			codepoint = word_to_codepoint.get(f"IDEOGRAPH {w.upper()}")
+			codepoint = word_to_codepoint.get(w)
 			if codepoint is None:
 				sitelen_pona_phrase = None
 				break
@@ -101,7 +129,7 @@ word_to_codepoint_codepage_2 = {}
 # add virtual codepoints for code page 1 and 2
 for word in wakalito_mapping['matches']:
 	w = word['replace']
-	if f"IDEOGRAPH {w.upper()}" not in word_to_codepoint:
+	if w not in word_to_codepoint:
 		has_unicode, string = process_output_word(w)
 		if not has_unicode:
 			word_to_codepoint_codepage_1[w] = len(codepage_1)
@@ -158,9 +186,8 @@ def encode_trigger_as_u24(trigger):
 	return ret
 
 def get_codepage_and_codepoint(word):
-	toki_pona_word_ideograph = f"IDEOGRAPH {word.upper()}"
-	if toki_pona_word_ideograph in word_to_codepoint:
-		return (0, word_to_codepoint[toki_pona_word_ideograph]-KEYBOARD_SITELEN_PONA_CODEPOINT_START)
+	if word in word_to_codepoint:
+		return (0, word_to_codepoint[word]-KEYBOARD_SITELEN_PONA_CODEPOINT_START)
 	elif word in word_to_codepoint_codepage_1:
 		return (1, word_to_codepoint_codepage_1[word])
 	elif word in word_to_codepoint_codepage_2:
@@ -181,7 +208,7 @@ for word in wakalito_mapping['matches']:
 		if encoded_trigger_u52 == 0:
 			continue # Unable to encode. Skipping!
 		if encoded_trigger_u52 in wakalito_reversed_mapping:
-			raise Exception(f"Duplicate trigger word detected. Unable to handle. trigger: {i}")
+			raise Exception(f"Error: Duplicate trigger word detected: {i}")
 		wakalito_reversed_mapping[encoded_trigger_u52] = {"trigger": i, "trigger_u24": encoded_trigger_u24, "trigger_u52": encoded_trigger_u52, "word": c_style_escape(word['replace']), "codepage": codepage, "codepoint": codepoint}
 
 print("// This file was generated with generate_lookup_table.py. Do not manually modify.")
