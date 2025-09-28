@@ -35,10 +35,32 @@
 #include <stdio.h>
 #include <string.h>
 
-static uint16_t test_image[] = {
-	0xFFFF, 0xFFFF, 0xC003, 0xC003,
-	0xC003, 0xC003, 0xFFFF, 0xFFFF
-};
+static uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX] = {0};
+#define INPUT_BUFFER_SIZE (sizeof(input_buffer)/sizeof(*input_buffer))
+
+static size_t input_buffer_index = 0;
+static uint32_t codepoint_found = 0;
+
+void refresh_display(void) {
+	static uint16_t image[15] = {0};
+	display_clear();
+
+	// Blit the input buffer
+	for(size_t i=0; i<input_buffer_index; i++) {
+		lookup_get_image(image, LOOKUP_CODEPAGE_3_START+input_buffer[i]-1);
+		if(i<6) {
+			display_draw_16(image, 15, i*16, 0, 0);
+		} else {
+			display_draw_16(image, 15, (i-6)*16, 16, 0);
+		}
+	}
+
+	// Bilt the graphic to be output'd
+	lookup_get_image(image, codepoint_found);
+	display_draw_16(image, 15, 98, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
+
+	display_set_refresh_flag();
+}
 
 int main() {
 	SystemInit();
@@ -51,13 +73,7 @@ int main() {
 	display_init();
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
-	uint32_t last_update_tick = SysTick->CNT;
 	enum keyboard_output_mode mode = KEYBOARD_OUTPUT_MODE_LATIN;
-
-	uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX] = {0};
-	#define INPUT_BUFFER_SIZE (sizeof(input_buffer)/sizeof(*input_buffer))
-	size_t input_buffer_index = 0;
-	int32_t y_pos = 0;
 
 	while(1) {
 		uint32_t button_press_event = button_get_pressed_event();
@@ -75,6 +91,8 @@ int main() {
 								keyboard_write_codepoint(mode, codepoint);
 								memset(input_buffer, 0, sizeof(input_buffer));
 								input_buffer_index = 0;
+								codepoint_found = 0;
+								refresh_display();
 							}
 						}
 					break;
@@ -90,27 +108,21 @@ int main() {
 							keyboard_write_codepoint(mode, '\b');
 						} else {
 							input_buffer[input_buffer_index--] = 0;
-							y_pos = lookup_search(input_buffer, input_buffer_index)%32;
+							codepoint_found = lookup_search(input_buffer, input_buffer_index);
+							refresh_display();
 						}
 					break;
 					default:
 						if(input_buffer_index < INPUT_BUFFER_SIZE) {
 							input_buffer[input_buffer_index++] = key_id;
-							y_pos = lookup_search(input_buffer, input_buffer_index)%32;
+							codepoint_found = lookup_search(input_buffer, input_buffer_index);
+							refresh_display();
 						} else {
 							// Bufferoverflow. Let's do nothing!
 						}
 					break;
 				}
 			}
-		}
-
-		// Update graphic every 100ms. TODO: remove. It's just a piece of code for testing the display
-		if(SysTick->CNT - last_update_tick >= FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) {
-			last_update_tick = SysTick->CNT;
-			display_clear();
-			display_draw_16(test_image, sizeof(test_image)/sizeof(*test_image), input_buffer_index*8, y_pos, mode);
-			display_set_refresh_flag();
 		}
 	}
 }

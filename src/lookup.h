@@ -46,14 +46,41 @@ enum ilonena_key_id {
 	ILONENA_KEY_R,
 	ILONENA_KEY_T,
 	ILONENA_KEY_Y,
-	ILONENA_KEY_A, // colon
+	ILONENA_KEY_A, // colon - skipped in lookup_compact_entry
 	ILONENA_KEY_S,
 	ILONENA_KEY_D,
 	ILONENA_KEY_F,
-	ILONENA_KEY_G, // comma
+	ILONENA_KEY_G, // comma - skipped in lookup_compact_entry
 	ILONENA_KEY_ALA,
 	ILONENA_KEY_WEKA,
 	ILONENA_KEY_PANA,
+};
+
+
+// Images that couldn't be typed out
+enum internal_image {
+	INTERNAL_IMAGE_1,
+	INTERNAL_IMAGE_2,
+	INTERNAL_IMAGE_3,
+	INTERNAL_IMAGE_4,
+	INTERNAL_IMAGE_5,
+	INTERNAL_IMAGE_6,
+	INTERNAL_IMAGE_Q,
+	INTERNAL_IMAGE_W,
+	INTERNAL_IMAGE_E,
+	INTERNAL_IMAGE_R,
+	INTERNAL_IMAGE_T,
+	INTERNAL_IMAGE_Y,
+	INTERNAL_IMAGE_A,
+	INTERNAL_IMAGE_S,
+	INTERNAL_IMAGE_D,
+	INTERNAL_IMAGE_F,
+	INTERNAL_IMAGE_G,
+	INTERNAL_IMAGE_ALA,
+	INTERNAL_IMAGE_WINDOWS,
+	INTERNAL_IMAGE_LINUX,
+	INTERNAL_IMAGE_MAC,
+	INTERNAL_IMAGE_NUM,
 };
 
 // Compact entry: stores up to 6 input sequence (cannot store colon nor comma in input sequence), can only output a 8-bit sitelen pona id
@@ -76,14 +103,17 @@ struct __attribute__((__packed__)) lookup_full_entry {
 uint32_t lookup_search(uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX], size_t input_buffer_length);
 const char* lookup_get_ascii_string(uint8_t codepage, size_t index);
 const uint32_t* lookup_get_unicode_string(uint8_t codepage, size_t index);
+ void lookup_get_image(uint16_t image[15], uint32_t codepoint);
 
-// These variables are defined in generated.c
+// All of the variables below this point are defined in generated.c
 extern const uint32_t LOOKUP_CODEPAGE_0_START;
 extern const size_t LOOKUP_CODEPAGE_0_LENGTH;
 extern const uint32_t LOOKUP_CODEPAGE_1_START;
 extern const size_t LOOKUP_CODEPAGE_1_LENGTH;
 extern const uint32_t LOOKUP_CODEPAGE_2_START;
 extern const size_t LOOKUP_CODEPAGE_2_LENGTH;
+extern const uint32_t LOOKUP_CODEPAGE_3_START;
+extern const size_t LOOKUP_CODEPAGE_3_LENGTH;
 extern const char *LOOKUP_CODEPAGE_0;
 extern const char *LOOKUP_CODEPAGE_1;
 extern const uint32_t *LOOKUP_CODEPAGE_2[];
@@ -92,5 +122,10 @@ extern const struct lookup_compact_entry LOOKUP_COMPACT_TABLE[];
 extern const size_t LOOKUP_COMPACT_TABLE_LENGTH;
 extern const struct lookup_full_entry LOOKUP_FULL_TABLE[];
 extern const size_t LOOKUP_FULL_TABLE_LENGTH;
+
+extern const uint16_t FONT_CODEPAGE_0[][15];
+extern const uint16_t FONT_CODEPAGE_1[][15];
+extern const uint16_t FONT_CODEPAGE_2[][15];
+extern const uint16_t FONT_CODEPAGE_3[][15];
 
 #endif

@@ -29,26 +29,36 @@
 import re
 import sys
 import yaml
+import PIL.Image, PIL.ImageDraw, PIL.ImageFont
 
-if len(sys.argv) < 3:
-	print("{sys.argv[0]} <kreativekorp_ucsur_charts_sitelen.html> <wakalito-7-3-2.yml>")
+if len(sys.argv) < 4:
+	print("{sys.argv[0]} <kreativekorp_ucsur_charts_sitelen.html> <wakalito-7-3-2.yml> <lekolili15x15.ttf>")
 	exit(1)
+
+#####################
+## TEXT GENERATION ##
+#####################
 
 def c_style_escape(s):
 	return repr(s)[1:-1].replace('"', '\\\"')
 
 # code page 0. Fixed with sitelen pona's content
 KEYBOARD_SITELEN_PONA_CODEPOINT_START = 0xF1900
+KEYBOARD_CODEPAGE_0_START = KEYBOARD_SITELEN_PONA_CODEPOINT_START
 
 # code page 1 and 2. The content are dynamically filled
 KEYBOARD_CODEPAGE_1_START = 0xFFFF0000
 KEYBOARD_CODEPAGE_2_START = 0xFFFF1000
+
+# code page 3 - for showing internal images that won't be sent out to the USB keyboard interface
+KEYBOARD_CODEPAGE_3_START = 0xFFFF2000
 codepage_0_map = {} # maps codepoint to word
 codepage_1 = []
 codepage_2 = []
 
 UNICODE_PATH = sys.argv[1]
 WAKALITO_PATH = sys.argv[2]
+FONT_PATH = sys.argv[3]
 word_to_codepoint = {}
 
 SYMBOL_MAP = {
@@ -124,7 +134,7 @@ def process_output_word(word):
 
 # maps between code page 1's content and their codepoint - ASCII string
 word_to_codepoint_codepage_1 = {}
-# maps between code page 2's content and their codepoint - unicoed string
+# maps between code page 2's content and their codepoint - unicode string
 word_to_codepoint_codepage_2 = {}
 # add virtual codepoints for code page 1 and 2
 for word in wakalito_mapping['matches']:
@@ -214,14 +224,25 @@ for word in wakalito_mapping['matches']:
 print("// This file was generated with generate_lookup_table.py. Do not manually modify.")
 print("// This project's constrained by the flash size. Sorry for the unintuitive design!")
 print()
+print("// The content in this file were generated using files from external source, including the follows:")
+print("// 1. UCSUR's entry of sitelen pona - https://www.kreativekorp.com/ucsur/charts/sitelen.html")
+print("// 2. The yml file of nasin sitelen Wakalito published to archive.org - https://archive.org/details/nasin_sitelen_Wakalito")
+print("// 3. leko lili 15x15 font - https://toki.pona.billsmugs.com/lipu-tenpo/2022-05-15-sitelen_pona/ . For the missing glyphs, I've drawn them right inside the source file.")
+print()
+print("// The license of the UCSUR's entry is unknown. But I don't see a reason why I can't use it. It's a standard so it's meant to be used.")
+print("// As for the license of nasin sitelen Wakalito's input mapping, I've talked with the author of Wakalito.")
+print("// They're ok with me making a Wakalito keybaord as long as it isn't made with profit in mind.")
+print("// The license of font is CC0, a.k.a public domain.")
+print()
 
 print('#include "lookup.h"')
 print('#include <stdint.h>')
 print()
 
+codepage_0_size = max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1
 print("// codepage 0 - sitelen pona")
 print(f"const uint32_t LOOKUP_CODEPAGE_0_START = 0x{KEYBOARD_SITELEN_PONA_CODEPOINT_START:08X}U;")
-print(f"const size_t LOOKUP_CODEPAGE_0_LENGTH = {max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1};")
+print(f"const size_t LOOKUP_CODEPAGE_0_LENGTH = {codepage_0_size};")
 
 print("// codepage 1 - ASCII strings")
 print(f"const uint32_t LOOKUP_CODEPAGE_1_START = 0x{KEYBOARD_CODEPAGE_1_START:08X}U;")
@@ -232,8 +253,8 @@ print(f"const uint32_t LOOKUP_CODEPAGE_2_START = 0x{KEYBOARD_CODEPAGE_2_START:08
 print(f"const size_t LOOKUP_CODEPAGE_2_LENGTH = {len(codepage_2)};")
 print()
 
+print("// Intentionally not using array of string to save FLASH space. Can save 4 bytes for each entry this way.")
 print("const char *LOOKUP_CODEPAGE_0 = ")
-codepage_0_size = max(word_to_codepoint.values())-KEYBOARD_SITELEN_PONA_CODEPOINT_START+1
 for i in range(codepage_0_size):
 	null_terminator = "\\0" if i < codepage_0_size-1 else ""
 	if i in codepage_0_map:
@@ -243,6 +264,7 @@ for i in range(codepage_0_size):
 print(";")
 print()
 
+print("// Intentionally not using array of string to save FLASH space. Can save 4 bytes for each entry this way.")
 print("const char *LOOKUP_CODEPAGE_1 = ")
 for i, w in enumerate(codepage_1):
 	null_terminator = "\\0" if i < len(codepage_1)-1 else ""
@@ -284,3 +306,963 @@ print()
 
 print(f"const size_t LOOKUP_FULL_TABLE_LENGTH = sizeof(LOOKUP_FULL_TABLE)/sizeof(*LOOKUP_FULL_TABLE);")
 print()
+
+
+
+
+#####################
+## FONT GENERATION ##
+#####################
+
+print("// The content below is the font data.")
+print()
+
+font = PIL.ImageFont.truetype(FONT_PATH, 16)
+
+def get_font_data_by_rendering(codepoint):
+	image = PIL.Image.new('1', (16, 16), color=0)
+	draw = PIL.ImageDraw.Draw(image)
+	draw.text((0, -1), chr(codepoint), font=font, fill=1)
+
+	data = image.getdata()
+
+	output_data = [[0 for i in range(16)] for i in range(16)]
+	for i, pixel in enumerate(data):
+		x = i%16
+		y = i//16
+		output_data[y][x] = pixel
+	image.close()
+	return output_data
+
+def build_font_data(s):
+	s = s[1:-1] # Remove the first \n amd the final \n
+
+	output_data = [[0 for i in range(16)] for i in range(16)]
+	for y, row in enumerate(s.split('\n')):
+		for x, pixel in enumerate(row):
+			if x < 16 and y < 16:
+				output_data[y][x] = 1 if pixel == 'X' else 0
+
+	return output_data
+
+def font_data_to_u16_array(data):
+	output_data = [0 for i in range(15)]
+	for y, row in enumerate(data):
+		for x, pixel in enumerate(row):
+			if x >= 15:
+				continue
+			output_data[x] |= (pixel << y)
+	return output_data
+
+font_data = {}
+
+for i in range(0xF1900, 0xF1988+1):
+	font_data[i] = get_font_data_by_rendering(i)
+
+# Replacement character for missing glyphs
+font_data[0] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[0xF1990] = build_font_data('''
+______XXXXX____-
+_____X_________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+_____X_________-
+______XXXXX____-
+----------------
+''')
+
+font_data[0xF1991] = build_font_data('''
+____XXXXX______-
+_________X_____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+_________XX____-
+____XXXXX______-
+----------------
+''')
+
+font_data[0xF199C] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______X_______-
+______XXX______-
+_______X_______-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+
+font_data[0xF199D] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______X_______-
+______XXX______-
+_______X_______-
+_______________-
+_______________-
+_______________-
+_______X_______-
+______XXX______-
+_______X_______-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[0xF19A0] = build_font_data('''
+XXXXXXXXXXXXXXX-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+----------------
+''')
+
+font_data[0xF19A1] = build_font_data('''
+__XXX_____XXX__-
+_X___X___X___X_-
+X_____X_X_____X-
+X_____X_X_____X-
+X_____X_X_____X-
+_X___X___X___X_-
+__XXX_XXX_XXX__-
+____XX___XX____-
+__XX__XXX__XX__-
+XX___X___X___XX-
+____X_____X____-
+____X_____X____-
+____X_____X____-
+_____X___X_____-
+______XXX______-
+----------------
+''')
+
+font_data[0xF19A2] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+XXXXX_____XXXXX-
+_______________-
+_______________-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[0xF19A3] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+______X_X______-
+_______X_______-
+______X_X______-
+_______________-
+_______________-
+_______________-
+XXXXXXXXXXXXXXX-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["\n"]] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+______________X-
+___X__________X-
+__X___________X-
+_X____________X-
+XXXXXXXXXXXXXXX-
+_X_____________-
+__X____________-
+___X___________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["-"]] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_____XXXXX_____-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1['"']] = build_font_data('''
+_____X___X_____-
+_____X___X_____-
+_____X___X_____-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1[","]] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_________X_____-
+________X______-
+_______X_______-
+______X________-
+_____X_________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["__"]] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+XXXXXXXXXXXXXXX-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["..."]] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+___X___X___X___-
+__XXX_XXX_XXX__-
+___X___X___X___-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1[":)"]] = build_font_data('''
+________X______-
+_________X_____-
+__________X____-
+____X______X___-
+___XXX_____X___-
+____X______X___-
+___________X___-
+___________X___-
+___________X___-
+____X______X___-
+___XXX_____X___-
+____X______X___-
+__________X____-
+_________X_____-
+________X______-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1[":("]] = build_font_data('''
+___________X___-
+__________X____-
+_________X_____-
+____X___X______-
+___XXX__X______-
+____X___X______-
+________X______-
+________X______-
+________X______-
+____X___X______-
+___XXX__X______-
+____X___X______-
+_________X_____-
+__________X____-
+___________X___-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1[":v"]] = build_font_data('''
+_______________-
+_______________-
+_______________-
+___X___________-
+__XXX_X_____X__-
+___X__X_____X__-
+_______X___X___-
+_______X___X___-
+________X_X____-
+___X____X_X____-
+__XXX____X_____-
+___X_____X_____-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["oke"]] = build_font_data('''
+_______________-
+____________X__-
+____________X__-
+___________X___-
+___________X___-
+_____XXXXXX____-
+____X_____X____-
+___X_____X_X___-
+___X_X___X_X___-
+___X__X_X__X___-
+___X__X_X__X___-
+___X___X___X___-
+____X__X__X____-
+_____XXXXX_____-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["isipin"]] = build_font_data('''
+_______X_______-
+_X_____X_____X_-
+__X____X____X__-
+___X_______X___-
+_____XXXXX_____-
+____X_____X____-
+___X_______X___-
+__X_________X__-
+__XXXXXXXXXXXXX-
+__X_________X__-
+__X_________X__-
+__X_________X__-
+___X_______X___-
+____X_____X____-
+_____XXXXX_____-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["kapesi"]] = build_font_data('''
+______XXX______-
+_____X_X_X_____-
+____X__X__X____-
+___X___X___X___-
+___XXXXXXXXX___-
+___X___X___X___-
+____X__X__X____-
+_____X_X_X_____-
+______XXX______-
+_______X_______-
+______XXX______-
+_____X___X_____-
+____X_____X____-
+___X_______X___-
+__XXXXXXXXXXX__-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["kiki"]] = build_font_data('''
+__X______X_____-
+__XX____X_XX___-
+__X_XX_X____X__-
+__X___X______XX-
+__X________XX__-
+___X____XXX____-
+___X______X____-
+____X______X___-
+_____XX_____X__-
+___XX________XX-
+_XX_____X___X__-
+X___X___X___X__-
+_XXXX__X_XX__X_-
+____X_X____XXX_-
+_____X_______X_-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["linluwi"]] = build_font_data('''
+_XXXXXXXXXXXXX_-
+_X___________X_-
+_X___________X_-
+_X_X___X___X_X_-
+_XXXX_XXX_XXXX_-
+_X_X___X___X_X_-
+_X___________X_-
+_X___________X_-
+_X_XXX_______X_-
+_XX___X______X_-
+_X_____X_____X_-
+_X_____XX___XX_-
+_X_____X_XXX_X_-
+_X_____X_____X_-
+_X_____X_____X_-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["mulapisu"]] = build_font_data('''
+_______X_______-
+_______X_______-
+______X_X______-
+______X_X______-
+_____X___X_____-
+_____X___X_____-
+____X__X__X____-
+____X_X_X_X____-
+___X___X___X___-
+___X_______X___-
+__X__X___X__X__-
+__X_X_X_X_X_X__-
+_X___X___X___X_-
+_X___________X_-
+XXXXXXXXXXXXXXX-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["Pingo"]] = build_font_data('''
+XXXXXXXXXX_____-
+__X_______XX___-
+__X_________X__-
+__X__________X_-
+__X___________X-
+__X___________X-
+__X__________X_-
+__X_________X__-
+__XXXXXXXXXX___-
+__X____________-
+__X____________-
+__X____________-
+__X____________-
+__X____________-
+_XXX___________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["unu"]] = build_font_data('''
+_____XXXXX_____-
+____X_____XX___-
+_____XX_____X__-
+_______X_____X_-
+_______X_____X_-
+_______X_____X_-
+_____XX_____X__-
+____X_____XX___-
+_____XXXXX_____-
+_______X_______-
+______XXX______-
+_____X___X_____-
+____X_____X____-
+___X_______X___-
+__XXXXXXXXXXX__-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["wa"]] = build_font_data('''
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______________-
+_______________-
+___X___X___X___-
+___X___X___X___-
+___X___X___X___-
+____X_X_X_X____-
+_____X___X_____-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_2_START+word_to_codepoint_codepage_2["a a a "]] = build_font_data('''
+_______X_______-
+_______X_______-
+_______________-
+______XXXX_____-
+_____X___X_____-
+_____X___X_____-
+__X__X__XX__X__-
+__X___XX_X__X__-
+__X_________X__-
+_______________-
+__XXXX____XXXX_-
+_X___X___X___X_-
+_X___X___X___X_-
+_X__XX___X__XX_-
+__XX_X____XX_X_-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_2_START+word_to_codepoint_codepage_2["mi sona ala"]] = build_font_data('''
+______XX_______-
+_____X__X______-
+_____X__X______-
+_____XXX_______-
+_____X_________-
+______X________-
+___X___________-
+X__X__X_X_____X-
+_X___X___X___X_-
+__________X_X__-
+_XXXXX_____X___-
+_X___X____X_X__-
+_X___X___X___X_-
+_X___X__X_____X-
+_XXXXX_________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+0] = build_font_data('''
+___    _______-
+____XXXX_______-
+________XX_____-
+__________X____-
+__________X____-
+___________X___-
+___________X___-
+___________X___-
+___________X___-
+___________X___-
+__________X____-
+__________X____-
+________XX_____-
+____XXXX_______-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+1] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_XXXXXXXXXXXXX_-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+2] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+______XXX______-
+_____XXXXX_____-
+_____XXXXX_____-
+_____XXXXX_____-
+______XXX______-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+3] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_____X_________-
+____X__________-
+___X___________-
+__X___X_____X__-
+___X___X___X___-
+____X___X_X____-
+_____X___X_____-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+4] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_____XXXXX_____-
+___XX_____XX___-
+__X_________X__-
+__X_________X__-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+5] = build_font_data('''
+_______________-
+____XXXXXXX____-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____X__________-
+____XXXXXXX____-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+6] = build_font_data('''
+_______________-
+_______XXXX____-
+______X____X___-
+_____X______X__-
+____X_______X__-
+____X_______X__-
+___X_________X_-
+___X_________X_-
+___X_________X_-
+___X_________X_-
+___X_________X_-
+_X_X_________X_-
+__XX_________X_-
+___X_________X_-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+7] = build_font_data('''
+_______________-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______X_______-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+8] = build_font_data('''
+_______________-
+______XXX______-
+____XX___XX____-
+___X_______X___-
+__X_________X__-
+__X_________X__-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+__X_________X__-
+__X_________X__-
+___X_______X___-
+____XX___XX____-
+______XXX______-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+9] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_________X_____-
+_____X____X____-
+____X_X____X___-
+___X___X____X__-
+__X_____X__X___-
+__________X____-
+_________X_____-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+10] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+X_____________X-
+X_____________X-
+X_____________X-
+_X___________X_-
+_X___________X_-
+__X_________X__-
+___XX_____XX___-
+_____XXXXX_____-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+11] = build_font_data('''
+_______________-
+____XXXXXXX____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+__________X____-
+____XXXXXXX____-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+12] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______X_______-
+______XXX______-
+_______X_______-
+_______________-
+_______________-
+_______________-
+_______X_______-
+______XXX______-
+_______X_______-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+13] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_X___________X_-
+_XXXXXXXXXXXXX_-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+14] = build_font_data('''
+_______X_______-
+_______X_______-
+_______X_______-
+_______________-
+_______________-
+_____XXXXX_____-
+_____X___X_____-
+XXX__X___X__XXX-
+_____X___X_____-
+_____XXXXX_____-
+_______________-
+_______________-
+_______X_______-
+_______X_______-
+_______X_______-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+15] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______X_______-
+_X_____X_____X_-
+__X____X____X__-
+___X___X___X___-
+____X_____X____-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_3_START+16] = build_font_data('''
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_______________-
+_________X_____-
+________X______-
+_______X_______-
+______X________-
+_____X_________-
+_______________-
+----------------
+''')
+
+def print_codepoint_font_image(codepoint):
+	print("\t{", end='')
+	for n, c in enumerate(font_data_to_u16_array(font_data.get(codepoint, font_data[0]))):
+		print(f"0x{c:04X}", end='')
+		if n < 15-1:
+			print(",", end='')
+	print(f"}},")
+
+print("const uint16_t FONT_CODEPAGE_0[][15] = {")
+for i in range(codepage_0_size):
+	print_codepoint_font_image(KEYBOARD_CODEPAGE_0_START+i)
+print("};")
+
+print("const uint16_t FONT_CODEPAGE_1[][15] = {")
+for i in range(len(codepage_1)):
+	print_codepoint_font_image(KEYBOARD_CODEPAGE_1_START+i)
+print("};")
+
+print("const uint16_t FONT_CODEPAGE_2[][15] = {")
+for i in range(len(codepage_2)):
+	print_codepoint_font_image(KEYBOARD_CODEPAGE_2_START+i)
+print("};")
+
+print("const uint16_t FONT_CODEPAGE_3[][15] = {")
+codepoint = KEYBOARD_CODEPAGE_3_START
+while font_data.get(codepoint) is not None:
+	print_codepoint_font_image(codepoint)
+	codepoint += 1
+print("};")

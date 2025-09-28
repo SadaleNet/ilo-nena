@@ -370,8 +370,8 @@ void display_init(void) {
 	DMA1_Channel6->PADDR = (uint32_t)(&I2C1->DATAR);
 
 	// Initialize state variables
-	display_refresh_flag = DISPLAY_REFRESH_FLAG_INIT;
 	display_clear();
+	display_refresh_flag = DISPLAY_REFRESH_FLAG_INIT|DISPLAY_REFRESH_FLAG_GRAPHIC;
 }
 
 void display_set_refresh_flag(void) {

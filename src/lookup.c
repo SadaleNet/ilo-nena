@@ -26,8 +26,12 @@
 
 #include "lookup.h"
 #include "keyboard.h"
+#include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+const uint32_t LOOKUP_CODEPAGE_3_START = 0xFFFF2000U;
+const size_t LOOKUP_CODEPAGE_3_LENGTH = INTERNAL_IMAGE_NUM;
 
 uint64_t encode_input_buffer_as_u52(uint8_t input_buffer[12], size_t input_buffer_length) {
 	uint64_t ret_u52 = 0;
@@ -160,4 +164,18 @@ const uint32_t* lookup_get_unicode_string(uint8_t codepage, size_t index) {
 		return LOOKUP_CODEPAGE_2[index];
 	}
 	return NULL;
+}
+
+void lookup_get_image(uint16_t image[15], uint32_t codepoint) {
+	if(codepoint >= LOOKUP_CODEPAGE_0_START && codepoint < LOOKUP_CODEPAGE_0_START+LOOKUP_CODEPAGE_0_LENGTH) {
+		memcpy(image, FONT_CODEPAGE_0[codepoint-LOOKUP_CODEPAGE_0_START], 15*2);
+	} else if(codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH) {
+		memcpy(image, FONT_CODEPAGE_1[codepoint-LOOKUP_CODEPAGE_1_START], 15*2);
+	} else if(codepoint >= LOOKUP_CODEPAGE_2_START && codepoint < LOOKUP_CODEPAGE_2_START+LOOKUP_CODEPAGE_2_LENGTH) {
+		memcpy(image, FONT_CODEPAGE_2[codepoint-LOOKUP_CODEPAGE_2_START], 15*2);
+	} else if(codepoint >= LOOKUP_CODEPAGE_3_START && codepoint < LOOKUP_CODEPAGE_3_START+LOOKUP_CODEPAGE_3_LENGTH) {
+		memcpy(image, FONT_CODEPAGE_3[codepoint-LOOKUP_CODEPAGE_3_START], 15*2);
+	} else {
+		memset(image, 0, 15*2);
+	}
 }
