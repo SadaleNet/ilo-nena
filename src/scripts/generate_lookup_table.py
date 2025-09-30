@@ -94,11 +94,16 @@ with open(WAKALITO_PATH) as f:
 symbols_defined = {c:False for c in ".[]:,"}
 
 
-# Add a few special symbols that might have not been specified in the yml file
 for word in wakalito_mapping['matches'][:]:
+	# To avoid duplication for the symbols that we're about to add
 	if word.get('trigger') in ['3', '6', 'y', 'a', 'g']:
-		wakalito_mapping['matches'].remove(word)	
+		wakalito_mapping['matches'].remove(word)
 
+	# This one happens on "a a a " in particular. Somehow it has an extra trailing space, to be removed.
+	if word.get('replace').strip(' ') != word.get('replace'):
+		word['replace'] = word['replace'].strip()
+
+# Add a few special symbols that might have not been specified in the yml file
 wakalito_mapping['matches'].append({'trigger': '3', 'replace': '.', 'word': True})
 wakalito_mapping['matches'].append({'trigger': '6', 'replace': '[', 'word': True})
 wakalito_mapping['matches'].append({'trigger': 'y', 'replace': ']', 'word': True})
@@ -314,9 +319,6 @@ print()
 ## FONT GENERATION ##
 #####################
 
-print("// The content below is the font data.")
-print()
-
 font = PIL.ImageFont.truetype(FONT_PATH, 16)
 
 def get_font_data_by_rendering(codepoint):
@@ -345,14 +347,129 @@ def build_font_data(s):
 
 	return output_data
 
-def font_data_to_u16_array(data):
-	output_data = [0 for i in range(15)]
+def font_data_to_u8_array(data):
+	image_u16 = [0 for i in range(15)]
 	for y, row in enumerate(data):
+		if y >= 15:
+			continue
 		for x, pixel in enumerate(row):
 			if x >= 15:
 				continue
-			output_data[x] |= (pixel << y)
-	return output_data
+			image_u16[x] |= (pixel << y)
+
+	ret = b''
+	for u16 in image_u16:
+		ret += (u16 & 0xFF).to_bytes()
+		ret += ((u16 >> 8) & 0xFF).to_bytes()
+	return ret
+
+
+def font_compress(data):
+	image_data = [data[i*2] | (data[i*2+1] << 8) for i in range(len(data)//2)]
+
+	# Detect if the image is symmetric
+	mirrored = True
+	for i in range(7):
+		if image_data[i] != image_data[14-i]:
+			mirrored = False
+
+	# Detect for black border on the sides. i.e. cropping
+	start_column = 0
+	for i in range(8):
+		if image_data[i] == 0 and image_data[14-i] == 0:
+			start_column += 1
+		else:
+			break
+
+	if start_column == 8:
+		return (0).to_bytes() # empty image. just return zero
+
+	data_nibbles = [] # each array element has a 4-bit data
+
+	# dictionary-based compression. The dictionary stores most recent 8 recorded columns
+	# Since each column is 15 pixels and each column is 16bit, we use the bit0 to tell
+	# if the column is using dictionary or a direct definition
+	dictionary = [None for i in range(8)]
+	dictionary_index = 0
+	for u16 in image_data[start_column:(15-start_column if not mirrored else 8)]:
+		if u16 in dictionary:
+			# Use dictionary
+			data_nibbles.append((dictionary.index(u16) << 1) | 0x01)
+		else:
+			# Direct definition of the column content
+			dictionary[dictionary_index%8] = u16
+			dictionary_index += 1
+			u16 <<= 1 # the first bit is zero, indicating that the column isn't compressed
+			data_nibbles.append(u16 & 0xF)
+			data_nibbles.append((u16 >> 4) & 0xF)
+			data_nibbles.append((u16 >> 8) & 0xF)
+			data_nibbles.append((u16 >> 12) & 0xF)
+
+	# Pad it to a byte
+	if len(data_nibbles)%2 != 0:
+		data_nibbles.append(0x0)
+
+	# Validation
+	payload_size = len(data_nibbles)//2
+	if payload_size > 0b11111:
+		raise Exception("payload too large!")
+
+	for nibble in data_nibbles:
+		if nibble < 0x0 or nibble > 0xF:
+			raise Exception("data_nibbles in unexpected range")
+
+	ret = ((start_column<<5)|payload_size).to_bytes() # first byte is metadata
+	# the subsequent bytes are compressed data
+	for i in range(payload_size):
+		ret += (data_nibbles[i*2] | (data_nibbles[i*2+1] << 4)).to_bytes()
+	return ret
+
+def font_decompress(data):
+	start_col = (data[0] & 0xE0) >> 5
+	payload_length = data[0] & 0x1F
+
+	image = [0x0000 for i in range(15)]
+	if payload_length > 0:
+		data_nibbles = []
+		for b in data[1:]:
+			data_nibbles.append(b & 0xF)
+			data_nibbles.append((b >> 4) & 0xF)
+		col = start_col
+		end_col = 14-start_col # inclusive!
+
+		dictionary = [None for i in range(8)]
+		dictionary_index = 0
+		i = 0
+		while i < len(data_nibbles) and col <= end_col:
+			if data_nibbles[i] & 0x1:
+				# dictionary-mapped column
+				image[col] = dictionary[data_nibbles[i]>>1]
+				col += 1
+				i += 1
+			elif i+1 < len(data_nibbles):
+				# non-compressed column. Just read it directly.
+				image[col] |= data_nibbles[i]
+				image[col] |= data_nibbles[i+1] << 4
+				image[col] |= data_nibbles[i+2] << 8
+				image[col] |= data_nibbles[i+3] << 12
+				image[col] >>= 1
+				dictionary[dictionary_index%8] = image[col]
+				dictionary_index += 1
+				col += 1
+				i += 4
+			else:
+				break # Padding nibble!
+
+		# Symmetric image! Let's draw the second half that's mirrored with the first half.
+		if col == 8:
+			for i in range(col, end_col+1):
+				image[i] = image[14-i]
+
+	ret = b''
+	for u16 in image:
+		ret += (u16 & 0xFF).to_bytes()
+		ret += ((u16 & 0xFF00)>>8).to_bytes()
+	return ret
 
 font_data = {}
 
@@ -876,7 +993,27 @@ _____X___X_____-
 ----------------
 ''')
 
-font_data[KEYBOARD_CODEPAGE_2_START+word_to_codepoint_codepage_2["a a a "]] = build_font_data('''
+
+font_data[KEYBOARD_CODEPAGE_2_START+word_to_codepoint_codepage_2["/sp"]] = build_font_data('''
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+XXXXXXXXXXXXXXX-
+----------------
+''')
+
+font_data[KEYBOARD_CODEPAGE_2_START+word_to_codepoint_codepage_2["a a a"]] = build_font_data('''
 _______X_______-
 _______X_______-
 _______________-
@@ -1238,29 +1375,61 @@ _______________-
 ''')
 
 def print_codepoint_font_image(codepoint):
-	print("\t{", end='')
-	for n, c in enumerate(font_data_to_u16_array(font_data.get(codepoint, font_data[0]))):
-		print(f"0x{c:04X}", end='')
-		if n < 15-1:
-			print(",", end='')
-	print(f"}},")
+	print('\t', end='')
+	for b in font_compress(font_data_to_u8_array(font_data.get(codepoint, font_data[0]))):
+		print(f"0x{b:02X}, ", end='')
+	print(f"// U+{codepoint:X}")
 
-print("const uint16_t FONT_CODEPAGE_0[][15] = {")
+
+# font compression-decompression validation. Make sure that the compression function actually works for all codepoints
+validate_compression_algorithm = True
+if validate_compression_algorithm:
+	original_length = 0
+	compressed_length = 0
+	codepoints = []
+	for i in range(codepage_0_size):
+		codepoints.append(KEYBOARD_CODEPAGE_0_START+i)
+	for i in range(len(codepage_1)):
+		codepoints.append(KEYBOARD_CODEPAGE_1_START+i)
+	for i in range(len(codepage_2)):
+		codepoints.append(KEYBOARD_CODEPAGE_2_START+i)
+	codepoint = KEYBOARD_CODEPAGE_3_START
+	while font_data.get(codepoint) is not None:
+		codepoints.append(codepoint)
+		codepoint += 1
+	payload = b''
+	for i in codepoints:
+		original = font_data_to_u8_array(font_data.get(i, font_data[0]))
+		compressed = font_compress(original)
+		decompressed = font_decompress(compressed)
+		original_length += len(original)
+		compressed_length += len(compressed)
+		if original != decompressed:
+			print('Compression error! Codepoint: '+ hex(i))
+			print(' '.join([f'{b:02X}' for b in original]))
+			print(' '.join([f'{b:02X}' for b in decompressed]))
+			assert(False)
+
+
+print("// The content below is the compressed font data. The font size is 15x15.")
+print()
+
+print("const uint8_t FONT_CODEPAGE_0[] = {")
 for i in range(codepage_0_size):
 	print_codepoint_font_image(KEYBOARD_CODEPAGE_0_START+i)
 print("};")
 
-print("const uint16_t FONT_CODEPAGE_1[][15] = {")
+print("const uint8_t FONT_CODEPAGE_1[] = {")
 for i in range(len(codepage_1)):
 	print_codepoint_font_image(KEYBOARD_CODEPAGE_1_START+i)
 print("};")
 
-print("const uint16_t FONT_CODEPAGE_2[][15] = {")
+print("const uint8_t FONT_CODEPAGE_2[] = {")
 for i in range(len(codepage_2)):
 	print_codepoint_font_image(KEYBOARD_CODEPAGE_2_START+i)
 print("};")
 
-print("const uint16_t FONT_CODEPAGE_3[][15] = {")
+print("const uint8_t FONT_CODEPAGE_3[] = {")
 codepoint = KEYBOARD_CODEPAGE_3_START
 while font_data.get(codepoint) is not None:
 	print_codepoint_font_image(codepoint)

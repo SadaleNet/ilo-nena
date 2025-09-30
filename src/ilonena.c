@@ -42,22 +42,22 @@ static size_t input_buffer_index = 0;
 static uint32_t codepoint_found = 0;
 
 void refresh_display(void) {
-	static uint16_t image[15] = {0};
+	static uint16_t image[LOOKUP_IMAGE_WIDTH] = {0};
 	display_clear();
 
 	// Blit the input buffer
 	for(size_t i=0; i<input_buffer_index; i++) {
 		lookup_get_image(image, LOOKUP_CODEPAGE_3_START+input_buffer[i]-1);
 		if(i<6) {
-			display_draw_16(image, 15, i*16, 0, 0);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, i*16, 0, 0);
 		} else {
-			display_draw_16(image, 15, (i-6)*16, 16, 0);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, (i-6)*16, 16, 0);
 		}
 	}
 
 	// Bilt the graphic to be output'd
 	lookup_get_image(image, codepoint_found);
-	display_draw_16(image, 15, 98, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
+	display_draw_16(image, LOOKUP_IMAGE_WIDTH, 98, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
 
 	display_set_refresh_flag();
 }

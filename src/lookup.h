@@ -56,6 +56,7 @@ enum ilonena_key_id {
 	ILONENA_KEY_PANA,
 };
 
+#define LOOKUP_IMAGE_WIDTH (15U)
 
 // Images that couldn't be typed out
 enum internal_image {
@@ -103,7 +104,7 @@ struct __attribute__((__packed__)) lookup_full_entry {
 uint32_t lookup_search(uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX], size_t input_buffer_length);
 const char* lookup_get_ascii_string(uint8_t codepage, size_t index);
 const uint32_t* lookup_get_unicode_string(uint8_t codepage, size_t index);
- void lookup_get_image(uint16_t image[15], uint32_t codepoint);
+ void lookup_get_image(uint16_t image[LOOKUP_IMAGE_WIDTH], uint32_t codepoint);
 
 // All of the variables below this point are defined in generated.c
 extern const uint32_t LOOKUP_CODEPAGE_0_START;
@@ -123,9 +124,9 @@ extern const size_t LOOKUP_COMPACT_TABLE_LENGTH;
 extern const struct lookup_full_entry LOOKUP_FULL_TABLE[];
 extern const size_t LOOKUP_FULL_TABLE_LENGTH;
 
-extern const uint16_t FONT_CODEPAGE_0[][15];
-extern const uint16_t FONT_CODEPAGE_1[][15];
-extern const uint16_t FONT_CODEPAGE_2[][15];
-extern const uint16_t FONT_CODEPAGE_3[][15];
+extern const uint8_t FONT_CODEPAGE_0[];
+extern const uint8_t FONT_CODEPAGE_1[];
+extern const uint8_t FONT_CODEPAGE_2[];
+extern const uint8_t FONT_CODEPAGE_3[];
 
 #endif

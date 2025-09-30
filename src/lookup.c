@@ -166,16 +166,81 @@ const uint32_t* lookup_get_unicode_string(uint8_t codepage, size_t index) {
 	return NULL;
 }
 
-void lookup_get_image(uint16_t image[15], uint32_t codepoint) {
+static uint8_t lookup_get_nibble(const uint8_t *array, size_t index) {
+	if(index%2 == 1) {
+		return (array[index/2] >>4 ) & 0x0F;
+	}
+	return array[index/2] & 0x0F;
+}
+
+static void lookup_decompress_image(uint16_t image[LOOKUP_IMAGE_WIDTH], const uint8_t *compressed_data) {
+	size_t payload_length = (compressed_data[0] & 0x1F)*2; // Unit: nibbles
+	size_t start_col = (compressed_data[0] & 0xE0) >> 5;
+	size_t current_col = start_col;
+	size_t end_col = LOOKUP_IMAGE_WIDTH-start_col; // Exclusive!
+
+	if(payload_length == 0) {
+		memset(image, 0, sizeof(*image)*LOOKUP_IMAGE_WIDTH);
+		return;
+	}
+
+	// Fill the image with black bars on the sides (i.e. cropping handling)
+	for(size_t i=0; i<start_col; i++) {
+		image[i] = 0x00;
+		image[LOOKUP_IMAGE_WIDTH-1-i] = 0x00;
+	}
+
+	static uint16_t dictionary[8];
+	size_t dictionary_index = 0;
+	size_t i=0;
+	while(i < payload_length && current_col < end_col) {
+		if(lookup_get_nibble(&compressed_data[1], i) & 0x01) {
+			// Dictionary-mapped column
+			image[current_col++] = dictionary[lookup_get_nibble(&compressed_data[1], i++) >> 1];
+		} else if(i+1 < payload_length) {
+			// Non-dictionary mapped column
+			image[current_col] = lookup_get_nibble(&compressed_data[1], i++);
+			image[current_col] |= lookup_get_nibble(&compressed_data[1], i++) << 4;
+			image[current_col] |= lookup_get_nibble(&compressed_data[1], i++) << 8;
+			image[current_col] |= lookup_get_nibble(&compressed_data[1], i++) << 12;
+			image[current_col] >>= 1;
+			dictionary[dictionary_index++%8] = image[current_col++];
+		} else {
+			// Final padding nibble for aligning to 8 bytes. Ignore!
+			break;
+		}
+	}
+
+	if(current_col == 8) {
+		// Symmetric image. Only half of the image is encoded in the data
+		// Let's draw the second half that's mirrored with the first half
+		for(; current_col<end_col; current_col++) {
+			image[current_col] = image[LOOKUP_IMAGE_WIDTH-1-current_col];
+		}
+	}
+}
+
+static const uint8_t* lookup_get_image_ptr_by_index(const uint8_t *data_array, size_t index) {
+	const uint8_t *ret = data_array;
+	while(index--) {
+		ret += (ret[0] & 0x1F) + 1;
+	}
+	return ret;
+}
+
+void lookup_get_image(uint16_t image[LOOKUP_IMAGE_WIDTH], uint32_t codepoint) {
+	const uint8_t *font_data_ptr;
 	if(codepoint >= LOOKUP_CODEPAGE_0_START && codepoint < LOOKUP_CODEPAGE_0_START+LOOKUP_CODEPAGE_0_LENGTH) {
-		memcpy(image, FONT_CODEPAGE_0[codepoint-LOOKUP_CODEPAGE_0_START], 15*2);
+		font_data_ptr = lookup_get_image_ptr_by_index(FONT_CODEPAGE_0, codepoint-LOOKUP_CODEPAGE_0_START);
 	} else if(codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH) {
-		memcpy(image, FONT_CODEPAGE_1[codepoint-LOOKUP_CODEPAGE_1_START], 15*2);
+		font_data_ptr = lookup_get_image_ptr_by_index(FONT_CODEPAGE_1, codepoint-LOOKUP_CODEPAGE_1_START);
 	} else if(codepoint >= LOOKUP_CODEPAGE_2_START && codepoint < LOOKUP_CODEPAGE_2_START+LOOKUP_CODEPAGE_2_LENGTH) {
-		memcpy(image, FONT_CODEPAGE_2[codepoint-LOOKUP_CODEPAGE_2_START], 15*2);
+		font_data_ptr = lookup_get_image_ptr_by_index(FONT_CODEPAGE_2, codepoint-LOOKUP_CODEPAGE_2_START);
 	} else if(codepoint >= LOOKUP_CODEPAGE_3_START && codepoint < LOOKUP_CODEPAGE_3_START+LOOKUP_CODEPAGE_3_LENGTH) {
-		memcpy(image, FONT_CODEPAGE_3[codepoint-LOOKUP_CODEPAGE_3_START], 15*2);
+		font_data_ptr = lookup_get_image_ptr_by_index(FONT_CODEPAGE_3, codepoint-LOOKUP_CODEPAGE_3_START);
 	} else {
 		memset(image, 0, 15*2);
+		return;
 	}
+	lookup_decompress_image(image, font_data_ptr);
 }
