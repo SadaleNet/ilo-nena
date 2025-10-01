@@ -113,6 +113,27 @@ void refresh_display(void) {
 	display_set_refresh_flag();
 }
 
+const uint32_t* OUTPUT_TABLE[] = {
+	(const uint32_t[]){126, 40670, 24515, 36896, 29289, 20465, 27138, 37096, 126, 32, 0}, // ~點心造物俱樂部~
+	(const uint32_t[]){25105, 23628, 20320, 32769, 27597, 33, 32, 0}, // 我屌你老母!
+	(const uint32_t[]){20166, 34903, 33, 32, 0}, // 仆街!
+	(const uint32_t[]){20890, 23478, 21111, 33, 32, 0}, // 冚家剷!
+	(const uint32_t[]){22057, 33, 32, 22909, 26578, 21568, 33, 32, 0}, // 嘩! 好柒呀!
+	(const uint32_t[]){20570, 20060, 40169, 22050, 63, 32, 0}, // 做乜鳩嘢?
+
+	(const uint32_t[]){25910, 30382, 21862, 33, 32, 0}, // 收皮啦!
+	(const uint32_t[]){21780, 25754, 20418, 25499, 63, 32, 0}, // 唔撚係掛?
+	(const uint32_t[]){21670, 63, 32, 21448, 24190, 25754, 27491, 21902, 33, 32, 0}, // 咦? 又幾撚正喎!
+	(const uint32_t[]){25095, 40169, 20180, 33, 32, 0}, // 戇鳩仔!
+	(const uint32_t[]){21779, 33, 32, 25653, 31528, 26578, 22021, 33, 32, 0}, // 唓! 搵笨柒嘅!
+	(const uint32_t[]){21710, 21568, 33, 32, 26159, 40169, 26086, 21862, 33, 32, 0}, // 哎呀! 是鳩旦啦!
+
+	(const uint32_t[]){22909, 25754, 24758, 21834, 33, 32, 0}, // 好撚悶啊!
+	(const uint32_t[]){21834, 33, 32, 29609, 25754, 23436, 22217, 33, 32, 0}, // 啊! 玩撚完囉!
+	(const uint32_t[]){20060, 40169, 37117, 20871, 26194, 21862, 33, 32, 0}, // 乜鳩都冇晒啦!
+	(const uint32_t[]){20941, 25754, 27515, 25105, 22217, 33, 32, 0}, // 凍撚死我囉!
+	(const uint32_t[]){22810, 40169, 39192, 33, 32, 0}, // 多鳩餘!
+};
 int main() {
 	SystemInit();
 
@@ -132,51 +153,23 @@ int main() {
 				switch(ilonena_mode) {
 					case ILONENA_MODE_INPUT:
 						switch(key_id) {
-							case ILONENA_KEY_ALA:
 							case ILONENA_KEY_PANA:
-								if(input_buffer_index == 0) {
-									keyboard_write_codepoint(ilonena_config.output_mode, ' ');
-								} else {
-									// Lookup the table, then send out the key according to the buffer
-									uint32_t codepoint = lookup_search(input_buffer, input_buffer_index);
-									if(codepoint > 0) {
-										if(ilonena_config.ascii_punctuation) {
-											// Using ASCII alternative punctuations
-											switch(codepoint){
-												case 0xF1990: codepoint = '['; break;
-												case 0xF1991: codepoint = ']'; break;
-												case 0xF199C: codepoint = '.'; break;
-												case 0xF199D: codepoint = ':'; break;
-											}
-										}
-										keyboard_write_codepoint(ilonena_config.output_mode, codepoint);
-										if(key_id == ILONENA_KEY_PANA) {
-											keyboard_write_codepoint(ilonena_config.output_mode, '\n');
-										}
-										memset(input_buffer, 0, sizeof(input_buffer));
-										input_buffer_index = 0;
-										codepoint_found = 0;
-										refresh_display();
-									}
-								}
+								keyboard_write_codepoint(ilonena_config.output_mode, '\n');
+							break;
+							case ILONENA_KEY_ALA:
+								keyboard_write_codepoint(ilonena_config.output_mode, ' ');
 							break;
 							case ILONENA_KEY_WEKA:
-								if(input_buffer_index == 0) {
-									keyboard_write_codepoint(ilonena_config.output_mode, '\b');
-								} else {
-									input_buffer[input_buffer_index--] = 0;
-									codepoint_found = lookup_search(input_buffer, input_buffer_index);
-									refresh_display();
-								}
+								keyboard_write_codepoint(ilonena_config.output_mode, '\b');
 							break;
 							default:
-								if(input_buffer_index < INPUT_BUFFER_SIZE) {
-									input_buffer[input_buffer_index++] = key_id;
-									codepoint_found = lookup_search(input_buffer, input_buffer_index);
-									refresh_display();
-								} else {
-									// Bufferoverflow. Let's do nothing!
+							{
+								const uint32_t *ptr = OUTPUT_TABLE[i];
+								while(*ptr) {
+									keyboard_write_codepoint(ilonena_config.output_mode, *ptr);
+									ptr++;
 								}
+							}
 							break;
 						}
 					break;
