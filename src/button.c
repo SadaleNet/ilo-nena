@@ -32,6 +32,9 @@
 // Once it hits either BUTTON_DEBOUNCE_THRESHOLD or negative BUTTON_DEBOUNCE_THRESHOLD, it'd be recorded.
 #define BUTTON_DEBOUNCE_THRESHOLD (4)
 
+// Number of waiting required to register a button held event.
+#define BUTTON_HELD_THRESHOLD (3000*2) // 3 seconds
+
 // Column output config
 #define BUTTON_COLUMN_GPIO_PORT (GPIOD)
 // output, open-drain, 2Mhz
@@ -71,7 +74,8 @@ const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_I
 #define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
 
 uint32_t button_state = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_state()
-uint32_t button_press_event = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_state()
+uint32_t button_press_event = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_pressed_event()
+uint32_t button_held_event = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_held_event()
 
 void button_init(void) {
 	// Initialize the state variable(s)
@@ -143,6 +147,17 @@ void button_loop(void) {
 	// write to the columns
 	BUTTON_COLUMN_GPIO_PORT->BSHR = BUTTON_COLUMN_BSHR_MASK_MAP[button_scan_column];
 
+	// Handle button held event
+	static uint32_t button_held[BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT] = {0};
+	for(size_t i=0; i<BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT; i++) {
+		if(button_state & (1<<i)) {
+			if(++button_held[i] == BUTTON_HELD_THRESHOLD){
+				button_held_event |= (1<<i);
+			}
+		} else {
+			button_held[i] = 0;
+		}
+	}
 
 	// Perform compiler-level "refresh" of button_press_event because it might be modified by button_get_pressed_event()
 	asm volatile ("" ::: "memory");
@@ -166,6 +181,15 @@ uint32_t button_get_pressed_event(void) {
 	__disable_irq();
 	uint32_t ret = button_press_event;
 	button_press_event = 0;
+	__enable_irq();
+	return ret;
+}
+
+uint32_t button_get_held_event(void) {
+	asm volatile ("" ::: "memory");
+	__disable_irq();
+	uint32_t ret = button_held_event;
+	button_held_event = 0;
 	__enable_irq();
 	return ret;
 }

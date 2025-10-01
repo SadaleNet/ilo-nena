@@ -391,8 +391,15 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 				// Convert codepage 1 codepoint to sitelen Lasin
 				keyboard_write_ascii_string(1, codepoint-LOOKUP_CODEPAGE_1_START);
 			} else {
-				// Unsupported codepoint. Let's output a questionmark.
-				keyboard_push_to_out_buffer('?');
+				switch(codepoint){
+					case 0x3000:
+						keyboard_push_to_out_buffer(' ');
+					break;
+					default:
+						// Unsupported codepoint. Let's output a questionmark.
+						keyboard_push_to_out_buffer('?');
+					break;
+				}
 			}
 		break;
 		case KEYBOARD_OUTPUT_MODE_WINDOWS:
