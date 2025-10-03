@@ -35,10 +35,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#define FIRMWARE_REVISION (0)
+
 static enum {
+	ILONENA_MODE_TITLE_SCREEN,
 	ILONENA_MODE_INPUT,
 	ILONENA_MODE_CONFIG,
-} ilonena_mode = ILONENA_MODE_INPUT;
+} ilonena_mode = ILONENA_MODE_TITLE_SCREEN;
 
 struct ilonena_config {
 	enum keyboard_output_mode output_mode;
@@ -50,18 +53,32 @@ static struct ilonena_config ilonena_config_prev;
 
 static uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX] = {0};
 #define INPUT_BUFFER_SIZE (sizeof(input_buffer)/sizeof(*input_buffer))
-#define NOT_FOUND_BLINK_DURATION (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100)
+#define TITLE_SCREEN_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 5000) // 5000ms. Must be longer than BUTTON_HELD_THRESHOLD
+#define NOT_FOUND_BLINK_DURATION (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms
 
 static size_t input_buffer_index = 0;
 static uint32_t codepoint_found = 0;
-static uint8_t codepoint_not_found = 0;
-static uint32_t codepoint_not_found_blink_start_tick = 0;
+static uint8_t codepoint_not_found = 0; // for blinking in case the codepoint isn't found
+static uint32_t codepoint_not_found_blink_start_tick = 0; // for determining when to stop blinking
 
 void refresh_display(void) {
 	static uint16_t image[LOOKUP_IMAGE_WIDTH+1] = {0};
 	display_clear();
 
 	switch(ilonena_mode) {
+		case ILONENA_MODE_TITLE_SCREEN:
+		{
+			lookup_get_image(image, 0xF190E); // ILO in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
+			lookup_get_image(image, 0xF1940); // NENA in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 1*32, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
+
+			lookup_get_image(image, 0xF193D); // NANPA in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 6*16, 16, 0);
+			lookup_get_image(image, LOOKUP_CODEPAGE_0_START+FIRMWARE_REVISION);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 7*16, 16, 0);
+		}
+		break;
 		case ILONENA_MODE_INPUT:
 		{
 			// Blit the input buffer
@@ -127,14 +144,28 @@ int main() {
 	display_init();
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
-	uint8_t display_refresh_required = 0;
+	uint8_t display_refresh_required = 1; // Set it to 1 for showing the title screen
+	uint32_t title_screen_timeout_start_counting_tick = SysTick->CNT;
 
 	while(1) {
 		uint32_t button_press_event = button_get_pressed_event();
 		for(size_t i=0; i<20; i++) {
 			if(button_press_event & (1U << i)) {
 				enum ilonena_key_id key_id = i+1;
+				reprocess_key:
 				switch(ilonena_mode) {
+					case ILONENA_MODE_TITLE_SCREEN:
+						if(key_id == ILONENA_KEY_WEKA) {
+							// Reset timeout if WEKA key is pressed.
+							// That's because holding WEKA key would enter permanent config mode
+							title_screen_timeout_start_counting_tick = SysTick->CNT;
+						} else {
+							ilonena_mode = ILONENA_MODE_INPUT;
+							// Required for keys like PANA or ALA, which doesn't update the screen in ILONENA_MODE_INPUT
+							display_refresh_required = 1;
+							goto reprocess_key;
+						}
+					break;
 					case ILONENA_MODE_INPUT:
 						switch(key_id) {
 							case ILONENA_KEY_ALA:
@@ -233,8 +264,15 @@ int main() {
 			}
 		}
 
+
+		// Automatically exit title screen after idling for a while
+		if(ilonena_mode == ILONENA_MODE_TITLE_SCREEN && SysTick->CNT - title_screen_timeout_start_counting_tick >= TITLE_SCREEN_TIMEOUT) {
+			ilonena_mode = ILONENA_MODE_INPUT;
+			display_refresh_required = 1;
+		}
+
 		// Handle end of blinking in case invalid input sequence is found
-		if(codepoint_not_found && SysTick->CNT - codepoint_not_found_blink_start_tick > NOT_FOUND_BLINK_DURATION) {
+		if(codepoint_not_found && SysTick->CNT - codepoint_not_found_blink_start_tick >= NOT_FOUND_BLINK_DURATION) {
 			codepoint_not_found = 0;
 			display_refresh_required = 1;
 		}
