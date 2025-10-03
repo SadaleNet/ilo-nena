@@ -50,9 +50,12 @@ static struct ilonena_config ilonena_config_prev;
 
 static uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX] = {0};
 #define INPUT_BUFFER_SIZE (sizeof(input_buffer)/sizeof(*input_buffer))
+#define NOT_FOUND_BLINK_DURATION (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100)
 
 static size_t input_buffer_index = 0;
 static uint32_t codepoint_found = 0;
+static uint8_t codepoint_not_found = 0;
+static uint32_t codepoint_not_found_blink_start_tick = 0;
 
 void refresh_display(void) {
 	static uint16_t image[LOOKUP_IMAGE_WIDTH+1] = {0};
@@ -73,7 +76,7 @@ void refresh_display(void) {
 
 			// Bilt the graphic to be output'd
 			lookup_get_image(image, codepoint_found);
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 98, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 98, 1, (codepoint_not_found ? DISPLAY_DRAW_FLAG_INVERT : 0) | DISPLAY_DRAW_FLAG_SCALE_2x);
 		}
 		break;
 		case ILONENA_MODE_CONFIG:
@@ -124,6 +127,8 @@ int main() {
 	display_init();
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
 
+	uint8_t display_refresh_required = 0;
+
 	while(1) {
 		uint32_t button_press_event = button_get_pressed_event();
 		for(size_t i=0; i<20; i++) {
@@ -135,7 +140,11 @@ int main() {
 							case ILONENA_KEY_ALA:
 							case ILONENA_KEY_PANA:
 								if(input_buffer_index == 0) {
-									keyboard_write_codepoint(ilonena_config.output_mode, ' ');
+									if(key_id == ILONENA_KEY_PANA) {
+										keyboard_write_codepoint(ilonena_config.output_mode, '\n');
+									} else {
+										keyboard_write_codepoint(ilonena_config.output_mode, ' ');
+									}
 								} else {
 									// Lookup the table, then send out the key according to the buffer
 									uint32_t codepoint = lookup_search(input_buffer, input_buffer_index);
@@ -156,7 +165,11 @@ int main() {
 										memset(input_buffer, 0, sizeof(input_buffer));
 										input_buffer_index = 0;
 										codepoint_found = 0;
-										refresh_display();
+										display_refresh_required = 1;
+									} else {
+										codepoint_not_found = 1;
+										codepoint_not_found_blink_start_tick = SysTick->CNT;
+										display_refresh_required = 1;
 									}
 								}
 							break;
@@ -164,16 +177,18 @@ int main() {
 								if(input_buffer_index == 0) {
 									keyboard_write_codepoint(ilonena_config.output_mode, '\b');
 								} else {
+									codepoint_not_found = 0;
 									input_buffer[input_buffer_index--] = 0;
 									codepoint_found = lookup_search(input_buffer, input_buffer_index);
-									refresh_display();
+									display_refresh_required = 1;
 								}
 							break;
 							default:
 								if(input_buffer_index < INPUT_BUFFER_SIZE) {
+									codepoint_not_found = 0;
 									input_buffer[input_buffer_index++] = key_id;
 									codepoint_found = lookup_search(input_buffer, input_buffer_index);
-									refresh_display();
+									display_refresh_required = 1;
 								} else {
 									// Bufferoverflow. Let's do nothing!
 								}
@@ -186,18 +201,18 @@ int main() {
 								if(++ilonena_config.output_mode >= KEYBOARD_OUTPUT_MODE_END) {
 									ilonena_config.output_mode = 0;
 								}
-								refresh_display();
+								display_refresh_required = 1;
 							break;
 							case ILONENA_KEY_Q:
 								ilonena_config.ascii_punctuation = !ilonena_config.ascii_punctuation;
-								refresh_display();
+								display_refresh_required = 1;
 							break;
 							case ILONENA_KEY_WEKA:
 								ilonena_config = ilonena_config_prev;
 							// Fallthrough
 							case ILONENA_KEY_PANA:
 								ilonena_mode = ILONENA_MODE_INPUT;
-								refresh_display();
+								display_refresh_required = 1;
 							break;
 							default:
 								// Do nothing!
@@ -214,8 +229,22 @@ int main() {
 				// If ALA is held, enter config mode
 				ilonena_config_prev = ilonena_config;
 				ilonena_mode = ILONENA_MODE_CONFIG;
-				refresh_display();
+				display_refresh_required = 1;
 			}
+		}
+
+		// Handle end of blinking in case invalid input sequence is found
+		if(codepoint_not_found && SysTick->CNT - codepoint_not_found_blink_start_tick > NOT_FOUND_BLINK_DURATION) {
+			codepoint_not_found = 0;
+			display_refresh_required = 1;
+		}
+
+		// When display refresh flag is set, only draw on the the display buffer and kick off the DMA while
+		// there's no data transfer to the display is going on. Updating the display buffer while the DMA is reading it
+		// would cause inconsistent pixels being displayed.
+		if(display_refresh_required && display_is_idle()) {
+			display_refresh_required = 0;
+			refresh_display();
 		}
 	}
 }
