@@ -28,11 +28,12 @@
 #include "display.h"
 #include "lookup.h"
 #include "keyboard.h"
+#include "optionbytes.h"
 #include "tim2_task.h"
 
 #include "ch32fun.h"
 #include "rv003usb.h"
-#include <stdio.h>
+#include <assert.h>
 #include <string.h>
 
 #define FIRMWARE_REVISION (0)
@@ -44,9 +45,13 @@ static enum {
 } ilonena_mode = ILONENA_MODE_TITLE_SCREEN;
 
 struct ilonena_config {
-	enum keyboard_output_mode output_mode;
-	uint8_t ascii_punctuation;
-};
+	// Avoid modifying the order of variable for backward compatibility of the config
+	enum keyboard_output_mode output_mode:3;
+	uint8_t ascii_punctuation:1;
+	uint16_t padding:12; // Pad to 16bits
+} __attribute__((packed));
+
+static_assert(sizeof(struct ilonena_config) == 2, "Size of struct ilonena_config must be 2 bytes so that it could be stored into the optoin bytes.");
 
 static struct ilonena_config ilonena_config = {.output_mode=KEYBOARD_OUTPUT_MODE_LATIN, .ascii_punctuation=0};
 static struct ilonena_config ilonena_config_prev;
@@ -143,6 +148,10 @@ int main() {
 	button_init();
 	display_init();
 	tim2_task_init(); // Runs button_loop() and display_loop() with TIM2 interrupt
+	
+	// Load settings from option bytes
+	uint16_t optbyte_data = optionbytes_get_data();
+	memcpy(&ilonena_config, &optbyte_data, sizeof(ilonena_config));
 
 	uint8_t display_refresh_required = 1; // Set it to 1 for showing the title screen
 	uint32_t title_screen_timeout_start_counting_tick = SysTick->CNT;
@@ -244,6 +253,12 @@ int main() {
 							case ILONENA_KEY_PANA:
 								ilonena_mode = ILONENA_MODE_INPUT;
 								display_refresh_required = 1;
+								// TODO: Don't run unless in permanent config mode
+								{
+									uint16_t data;
+									memcpy(&data, &ilonena_config, sizeof(ilonena_config));
+									optionbytes_write_data(data);
+								}
 							break;
 							default:
 								// Do nothing!
