@@ -42,6 +42,7 @@ static enum {
 	ILONENA_MODE_TITLE_SCREEN,
 	ILONENA_MODE_INPUT,
 	ILONENA_MODE_CONFIG,
+	ILONENA_MODE_OPTBYTE_ERROR_SCREEN, // Option byte write error
 } ilonena_mode = ILONENA_MODE_TITLE_SCREEN;
 
 struct ilonena_config {
@@ -65,6 +66,8 @@ static size_t input_buffer_index = 0;
 static uint32_t codepoint_found = 0;
 static uint8_t codepoint_not_found = 0; // for blinking in case the codepoint isn't found
 static uint32_t codepoint_not_found_blink_start_tick = 0; // for determining when to stop blinking
+static uint8_t persistent_config = 1; // 1 if the config scene would save to optbyte permanently. 0 if config won't be persist after reboot
+static uint32_t config_error_code = 0;
 
 void refresh_display(void) {
 	static uint16_t image[LOOKUP_IMAGE_WIDTH+1] = {0};
@@ -74,9 +77,9 @@ void refresh_display(void) {
 		case ILONENA_MODE_TITLE_SCREEN:
 		{
 			lookup_get_image(image, 0xF190E); // ILO in UCSUR, code page 0.
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
 			lookup_get_image(image, 0xF1940); // NENA in UCSUR, code page 0.
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 1*32, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 1*32, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
 
 			lookup_get_image(image, 0xF193D); // NANPA in UCSUR, code page 0.
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 6*16, 16, 0);
@@ -131,6 +134,23 @@ void refresh_display(void) {
 			lookup_get_image(image, 0xF1976); // WEKA in UCSUR, code page 0.
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 6*16, 16, 0);
 			lookup_get_image(image, 0xF194C); // PANA in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 7*16, 16, 0);
+
+			// Draw AWEN on top-right corner if we're in persistent config mode
+			if(persistent_config) {
+				lookup_get_image(image, 0xF1908); // AWEN in UCSUR, code page 0.
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH, 7*16, 0, 0);
+			}
+		break;
+		case ILONENA_MODE_OPTBYTE_ERROR_SCREEN:
+			lookup_get_image(image, 0xF1948); // PAKALA in UCSUR, code page 0
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 0*32, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
+			lookup_get_image(image, 0xF1900); // PAKALA in UCSUR, code page 0
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 1*32, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
+
+			lookup_get_image(image, 0xF193D); // NANPA in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 6*16, 16, 0);
+			lookup_get_image(image, LOOKUP_CODEPAGE_0_START+config_error_code); // error code in UCSUR
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 7*16, 16, 0);
 		break;
 	}
@@ -249,15 +269,21 @@ int main() {
 							break;
 							case ILONENA_KEY_WEKA:
 								ilonena_config = ilonena_config_prev;
-							// Fallthrough
+								ilonena_mode = ILONENA_MODE_INPUT;
+								display_refresh_required = 1;
+							break;
 							case ILONENA_KEY_PANA:
 								ilonena_mode = ILONENA_MODE_INPUT;
 								display_refresh_required = 1;
-								// TODO: Don't run unless in permanent config mode
-								{
-									uint16_t data;
-									memcpy(&data, &ilonena_config, sizeof(ilonena_config));
-									optionbytes_write_data(data);
+								if(persistent_config) {
+									uint16_t optbyte_data;
+									memcpy(&optbyte_data, &ilonena_config, sizeof(ilonena_config));
+									config_error_code = optionbytes_write_data(optbyte_data);
+									if(config_error_code) {
+										// Option Bytes write error occurred!
+										// Let's show the error screen instead of getting back to input mode
+										ilonena_mode = ILONENA_MODE_OPTBYTE_ERROR_SCREEN;
+									}
 								}
 							break;
 							default:
@@ -265,18 +291,26 @@ int main() {
 							break;
 						}
 					break;
+					case ILONENA_MODE_OPTBYTE_ERROR_SCREEN:
+						// Do nothing! The user is permanently stuck in this mode until a reboot.
+					break;
 				}
 			}
 		}
 
-		uint32_t button_held_event = button_get_held_event();
+		// If we ever end up in ILONENA_MODE_INPUT, we would no longer offer persistent config mode.
+		// The only way to enter persistent config mode is to hold the WEKA button in the title screen.
 		if(ilonena_mode == ILONENA_MODE_INPUT) {
-			if(button_held_event & (1<<(ILONENA_KEY_ALA-1))) {
-				// If ALA is held, enter config mode
-				ilonena_config_prev = ilonena_config;
-				ilonena_mode = ILONENA_MODE_CONFIG;
-				display_refresh_required = 1;
-			}
+			persistent_config = 0;
+		}
+
+		uint32_t button_held_event = button_get_held_event();
+		if((ilonena_mode == ILONENA_MODE_INPUT && (button_held_event & (1<<(ILONENA_KEY_ALA-1)))) || // If ALA is held, enter config mode (persistent_config=0)
+			(ilonena_mode == ILONENA_MODE_TITLE_SCREEN && (button_held_event & (1<<(ILONENA_KEY_WEKA-1)))) // If WEKA is held, enter persistent config mode (persistent_config=1)
+			) {
+			ilonena_config_prev = ilonena_config;
+			ilonena_mode = ILONENA_MODE_CONFIG;
+			display_refresh_required = 1;
 		}
 
 
