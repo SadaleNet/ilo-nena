@@ -148,15 +148,15 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			KEY_STEP_WAIT_COMMAND,
 			// Release the lock keys. Also wait for the lock key toggle to take effect
 			KEY_STEP_TOGGLE_LOCKS_WAIT,
-			// Press the modifier keys. For Windows and Mac, it's ALT and it's held. For Linux, it's CTRL+SHIFT+U. For Latin, this step is skipped
+			// Press the modifier keys. For Windows, it's R_ALT (WinCompose). For Mac, it's ALT and it's held. For Linux, it's CTRL+SHIFT+U. For Latin, this step is skipped
 			KEY_STEP_PRESS_MODIFIER_KEYS,
-			// Release the modifier key so that it'd get taken. For Windows/Mac, the modifier key is to be held and this step is skipped.
+			// Release the modifier key so that it'd get taken. For Mac, the modifier key is to be held and this step is skipped.
 			// For Latin, this step is also skipped.
 			KEY_STEP_RELEASE_MODIFIER_KEYS,
 			// Wait for ASCII characters or KEYBOARD_OUTPUT_MODE_END. Send key presses based on the ASCII character received in the output buffer.
 			// Upon KEYBOARD_OUTPUT_MODE_END is received, go to the next step
 			KEY_STEP_SEND_KEYS,
-			// Release the ALT key for Windows/Mac. Skipped for Linux/Latin
+			// Release the ALT key for Mac. Skipped for Windows/Linux/Latin
 			KEY_STEP_RELEASE_MODIFIER_KEYS_2,
 			// Toggle lock key so that it restore back to original state
 			KEY_STEP_TOGGLE_LOCKS_2,
@@ -180,14 +180,11 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 						case KEYBOARD_OUTPUT_MODE_LATIN:
 						case KEYBOARD_OUTPUT_MODE_LINUX:
 						case KEYBOARD_OUTPUT_MODE_MACOS:
+						case KEYBOARD_OUTPUT_MODE_WINDOWS:
 							// Need to ensure Capslock is inactive
 							lock_indicator_target = 0;
 							lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
 						break;
-						case KEYBOARD_OUTPUT_MODE_WINDOWS:
-							// Need to ensure Numlock is active
-							lock_indicator_target = KEYBOARD_LED_NUMLOCK;
-							lock_indicator_target_mask = KEYBOARD_LED_NUMLOCK;
 						break;
 						case KEYBOARD_OUTPUT_MODE_END:
 						default:
@@ -218,10 +215,13 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 				// Press the modifier keys according to the mode
 				switch(mode) {
 					case KEYBOARD_OUTPUT_MODE_MACOS:
-					case KEYBOARD_OUTPUT_MODE_WINDOWS:
 						// The Mac OS Option key is equivalent to KEYBOARD_MODIFIER_LEFTALT
 						usb_response[0] = KEYBOARD_MODIFIER_LEFTALT;
 						key_step = KEY_STEP_SEND_KEYS;
+					break;
+					case KEYBOARD_OUTPUT_MODE_WINDOWS:
+						usb_response[0] = KEYBOARD_MODIFIER_RIGHTALT;
+						key_step = KEY_STEP_RELEASE_MODIFIER_KEYS;
 					break;
 					case KEYBOARD_OUTPUT_MODE_LINUX:
 						// Send CTRL+SHIFT+U prefix
@@ -253,10 +253,10 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 							switch(mode) {
 								case KEYBOARD_OUTPUT_MODE_LATIN:
 								case KEYBOARD_OUTPUT_MODE_LINUX:
+								case KEYBOARD_OUTPUT_MODE_WINDOWS:
 									// Skip releasing modifier key and just go toggle the lock keys
 									key_step = KEY_STEP_TOGGLE_LOCKS_2;
 								break;
-								case KEYBOARD_OUTPUT_MODE_WINDOWS:
 								case KEYBOARD_OUTPUT_MODE_MACOS:
 									key_step = KEY_STEP_RELEASE_MODIFIER_KEYS_2;
 								break;
@@ -292,7 +292,7 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			}
 			break;
 			case KEY_STEP_RELEASE_MODIFIER_KEYS_2:
-				// Stop holding the modifier keys (i.e. ALT for Windows and Mac)
+				// Stop holding the modifier keys (i.e. ALT for Mac)
 				usb_response[0] = 0x00;
 				key_step = KEY_STEP_TOGGLE_LOCKS_2;
 			break;
@@ -403,30 +403,15 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			}
 		break;
 		case KEYBOARD_OUTPUT_MODE_WINDOWS:
-		{
-			uint8_t base10_digits_reserved[10]; // For 32bit unsigned integer codepoint, the max value is 4294967295, which is 10 digits
-			size_t base10_digits_index = 0;
-			uint32_t unparsed_number = codepoint;
-			// Parse the codepoint into base10_digits_reserved[]
-			while(unparsed_number) {
-				base10_digits_reserved[base10_digits_index++] = (unparsed_number % 10);
-				unparsed_number /= 10;
-			}
-			// Send a numpad 0 (0x10) as prefix to tell Windows that unicode follows
-			// Without it, Windows might take the value as non-unicode codepoint and may output an unexpected symbol of other codepages
-			keyboard_push_to_out_buffer(0x10);
-			// Send each of the digit we just parsed with numpad keys (0x10~0x19 are numpad keys)
-			for(size_t i=base10_digits_index; i-->0; ) { // Reverse iteration with unsigned integer i
-				keyboard_push_to_out_buffer(0x10+base10_digits_reserved[i]);
-			}
-		}
+			// Send the codepoint as hex
+			keyboard_push_to_out_buffer('u'); // Press enter after complete entering the unicode
+			keyboard_push_hex_to_out_buffer(codepoint);
+			keyboard_push_to_out_buffer('\n'); // Press enter after complete entering the unicode
 		break;
 		case KEYBOARD_OUTPUT_MODE_LINUX:
-		{
 			// Send the codepoint as hex
 			keyboard_push_hex_to_out_buffer(codepoint);
 			keyboard_push_to_out_buffer(' '); // Press space after complete entering the unicode
-		}
 		break;
 		case KEYBOARD_OUTPUT_MODE_MACOS:
 			// Send the codepoint as hex in UTF-16 encoding
