@@ -42,6 +42,7 @@ static enum {
 	ILONENA_MODE_TITLE_SCREEN,
 	ILONENA_MODE_INPUT,
 	ILONENA_MODE_CONFIG,
+	ILONENA_MODE_INPUT_TIMEOUT,
 	ILONENA_MODE_OPTBYTE_ERROR_SCREEN, // Option byte write error
 } ilonena_mode = ILONENA_MODE_TITLE_SCREEN;
 
@@ -60,6 +61,8 @@ static struct ilonena_config ilonena_config_prev;
 static uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX] = {0};
 #define INPUT_BUFFER_SIZE (sizeof(input_buffer)/sizeof(*input_buffer))
 #define TITLE_SCREEN_TIMEOUT (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 5000) // 5000ms. Must be longer than BUTTON_HELD_THRESHOLD
+#define INPUT_TIMEOUT (300) // 300 seconds
+#define INPUT_TIMEOUT_DISPLAY_DURATION (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 1000) // 1000ms
 #define NOT_FOUND_BLINK_DURATION (FUNCONF_SYSTEM_CORE_CLOCK/1000 * 100) // 100ms
 
 static size_t input_buffer_index = 0;
@@ -142,6 +145,12 @@ void refresh_display(void) {
 				display_draw_16(image, LOOKUP_IMAGE_WIDTH, 7*16, 0, 0);
 			}
 		break;
+		case ILONENA_MODE_INPUT_TIMEOUT:
+			lookup_get_image(image, 0xF196B); // TENPO in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 1*32-4, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
+			lookup_get_image(image, 0xF1922); // LAPE in UCSUR, code page 0.
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 2*32+4, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
+		break;
 		case ILONENA_MODE_OPTBYTE_ERROR_SCREEN:
 			lookup_get_image(image, 0xF1948); // PAKALA in UCSUR, code page 0
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 0*32, 0, DISPLAY_DRAW_FLAG_SCALE_2x);
@@ -156,6 +165,12 @@ void refresh_display(void) {
 	}
 
 	display_set_refresh_flag();
+}
+
+void clear_input_buffer(void) {
+	memset(input_buffer, 0, sizeof(input_buffer));
+	input_buffer_index = 0;
+	codepoint_found = 0;
 }
 
 int main() {
@@ -175,6 +190,13 @@ int main() {
 
 	uint8_t display_refresh_required = 1; // Set it to 1 for showing the title screen
 	uint32_t title_screen_timeout_start_counting_tick = SysTick->CNT;
+	uint32_t input_screen_timeout_start_counting_tick;
+
+	// For clearing OLED after a timeout for protection against OLED burnout
+	// has to make a separate variable because 300s is a long wait and
+	// the last_input_tick math would overflow.
+	uint32_t last_input_tick;
+	uint32_t seconds_elapsed_since_last_input;
 
 	while(1) {
 		uint32_t button_press_event = button_get_pressed_event();
@@ -222,9 +244,7 @@ int main() {
 										if(key_id == ILONENA_KEY_PANA) {
 											keyboard_write_codepoint(ilonena_config.output_mode, '\n');
 										}
-										memset(input_buffer, 0, sizeof(input_buffer));
-										input_buffer_index = 0;
-										codepoint_found = 0;
+										clear_input_buffer();
 										display_refresh_required = 1;
 									} else {
 										codepoint_not_found = 1;
@@ -291,6 +311,9 @@ int main() {
 							break;
 						}
 					break;
+					case ILONENA_MODE_INPUT_TIMEOUT:
+						// Do nothing! This mode would exit on its own after waiting for a while
+					break;
 					case ILONENA_MODE_OPTBYTE_ERROR_SCREEN:
 						// Do nothing! The user is permanently stuck in this mode until a reboot.
 					break;
@@ -304,6 +327,36 @@ int main() {
 			persistent_config = 0;
 		}
 
+		// For either input more or config mode, the OLED would be turned off after idling for a while
+		// Purpose: OLED burn-out protection
+		if(ilonena_mode == ILONENA_MODE_INPUT || ilonena_mode == ILONENA_MODE_CONFIG) {
+			uint32_t systick_now = SysTick->CNT;
+			// Reset OLED timeout counter if either there's an input event, or nothing's being displayed
+			if(button_press_event || (ilonena_mode == ILONENA_MODE_INPUT && input_buffer_index == 0)) {
+				last_input_tick = systick_now;
+				seconds_elapsed_since_last_input = 0;
+			}
+
+			// Increment seconds_elapsed_since_last_input every second of idle
+			while(systick_now - last_input_tick >= FUNCONF_SYSTEM_CORE_CLOCK) {
+				last_input_tick += FUNCONF_SYSTEM_CORE_CLOCK;
+				if(++seconds_elapsed_since_last_input >= INPUT_TIMEOUT) {
+					// After idling for INPUT_TIMEOUT amount of seconds, show timeout screen
+					ilonena_mode = ILONENA_MODE_INPUT_TIMEOUT;
+					clear_input_buffer();
+					display_refresh_required = 1;
+					input_screen_timeout_start_counting_tick = SysTick->CNT;
+				}
+			}
+		} else {
+			// Keep resetting OLED timeout counter if we're in non-input modes
+			// Particularly, this is requried for the ILONENA_MODE_TITLE_SCREEN -> ILONENA_MODE_CONFIG transition.
+			// Without this piece of code, the transition would cause the timeout to be triggered immediately
+			last_input_tick = SysTick->CNT;
+			seconds_elapsed_since_last_input = 0;
+		}
+
+		// Enter config mode if certain button is held
 		uint32_t button_held_event = button_get_held_event();
 		if((ilonena_mode == ILONENA_MODE_INPUT && (button_held_event & (1<<(ILONENA_KEY_ALA-1)))) || // If ALA is held, enter config mode (persistent_config=0)
 			(ilonena_mode == ILONENA_MODE_TITLE_SCREEN && (button_held_event & (1<<(ILONENA_KEY_WEKA-1)))) // If WEKA is held, enter persistent config mode (persistent_config=1)
@@ -313,9 +366,15 @@ int main() {
 			display_refresh_required = 1;
 		}
 
-
 		// Automatically exit title screen after idling for a while
 		if(ilonena_mode == ILONENA_MODE_TITLE_SCREEN && SysTick->CNT - title_screen_timeout_start_counting_tick >= TITLE_SCREEN_TIMEOUT) {
+			ilonena_mode = ILONENA_MODE_INPUT;
+			display_refresh_required = 1;
+		}
+
+		// Automatically exit input timeout screen after showing for INPUT_TIMEOUT_DISPLAY_DURATION
+		// Always return to ILONENA_MODE_INPUT after timeout, even if the timeout was triggered from ILONENA_MODE_CONFIG
+		if(ilonena_mode == ILONENA_MODE_INPUT_TIMEOUT && SysTick->CNT - input_screen_timeout_start_counting_tick >= INPUT_TIMEOUT_DISPLAY_DURATION) {
 			ilonena_mode = ILONENA_MODE_INPUT;
 			display_refresh_required = 1;
 		}
