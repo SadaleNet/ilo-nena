@@ -22,6 +22,6 @@ mi pali e lipu ante ali. ken ona li "BSD 2-clause".
 The following files are adapted from external soruces. Please read the comment inside the files to view the license information:
 
 * src/usb_config.h - Adapted from MIT license source.
-* src/generated.c - contains font and strings generated from source files
+* src/generated.c - Contains font and strings generated from external files
 
 All other files are my own and they're licensed under BSD 2-clause license
