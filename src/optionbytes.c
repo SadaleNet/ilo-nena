@@ -56,7 +56,7 @@ uint32_t optionbytes_write_data(uint16_t data) {
 	};
 
 	// Flash write cycle conservation:
-	// Only perform flashing if the pending flash content is different from the existying one.
+	// Only perform flashing if the pending flash content is different from the existing one.
 	uint8_t same_content = 1;
 	static_assert(sizeof(pending_optbytes)%4 == 0, "Size of pending_optbytes is not divisible by 4. The for loop below won't work. Please rewrite.");
 	for(size_t i=0; i<sizeof(pending_optbytes)/4; i++) {

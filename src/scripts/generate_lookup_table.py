@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2025 Wong Cho Ching <https:#sadale.net>
+# Copyright 2025 Wong Cho Ching <https://sadale.net>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
