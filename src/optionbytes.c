@@ -60,7 +60,7 @@ uint32_t optionbytes_write_data(uint16_t data) {
 	uint8_t same_content = 1;
 	static_assert(sizeof(pending_optbytes)%4 == 0, "Size of pending_optbytes is not divisible by 4. The for loop below won't work. Please rewrite.");
 	for(size_t i=0; i<sizeof(pending_optbytes)/4; i++) {
-		if(((uint32_t*)OB_BASE)[i] != ((uint32_t*)pending_optbytes)[i]) {
+		if(((volatile uint32_t*)OB_BASE)[i] != ((uint32_t*)pending_optbytes)[i]) {
 			same_content = 0;
 			break;
 		}
@@ -116,12 +116,14 @@ uint32_t optionbytes_write_data(uint16_t data) {
 	// 5~7) Loop for each pending option byte:
 	for(size_t i=0; i<sizeof(pending_optbytes)/sizeof(*pending_optbytes); i++) {
 		// 5) Write the half word (2 bytes) to be programmed to the specified address.
-		((uint16_t*)OB_BASE)[i] = pending_optbytes[i];
+		((volatile uint16_t*)OB_BASE)[i] = pending_optbytes[i];
+		asm volatile("fence ow,ow"); // write memory barrier. Probably isn't neeed for the processor we're using but let's put it here anyway.
 		// 6) Wait for the BYS bit to become '0' or the EOP bit of FLASH_STATR register to be '1' to indicate the end of programming, and clear the EOP bit to 0.
 		while(FLASH->STATR & FLASH_BUSY);
 		FLASH->STATR |= FLASH_STATR_EOP; // write 1 to clear 0
 		// 7) Read the programmed address data checksum.
-		if(((uint16_t*)OB_BASE)[i] != pending_optbytes[i]) {
+		asm volatile("fence ir,ir"); // read memory barrier. Probably isn't neeed for the processor we're using but let's put it here anyway.
+		if(((volatile uint16_t*)OB_BASE)[i] != pending_optbytes[i]) {
 			ret |= (1<<i); // If the checksum's wrong, report the error when the function returns
 		}
 	}
