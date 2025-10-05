@@ -1,0 +1,53 @@
+diff --git a/bootloader/bootloader.c b/bootloader/bootloader.c
+index 07260bf..4bae5b4 100644
+--- a/bootloader/bootloader.c
++++ b/bootloader/bootloader.c
+@@ -23,7 +23,7 @@
+ 
+ // If you don't want to automatically boot into the application ever,
+ // comment out BOOTLOADER_TIMEOUT_USB and set this flag:
+-//#define DISABLE_BOOTLOAD
++#define DISABLE_BOOTLOAD
+ 
+ // Set this if you want the bootloader to keep the Port configuration untouched
+ // Otherwise it will reset all Pins on the Port used to input; costs 8-16 Bytes
+@@ -33,14 +33,14 @@
+ // If you want to use a Button during boot to enter bootloader, use these defines 
+ // to setup the Button. If you do, it makes sense to also set DISABLE_BOOTLOAD above, 
+ // set BOOTLOADER_TIMEOUT_PWR to 0 and disable BOOTLOADER_TIMEOUT_USB
+-//#define BOOTLOADER_BTN_PORT D
+-//#define BOOTLOADER_BTN_PIN 2
+-//#define BOOTLOADER_BTN_TRIG_LEVEL 0 // 1 = HIGH; 0 = LOW
+-//#define BOOTLOADER_BTN_PULL 1 // 1 = Pull-Up; 0 = Pull-Down; Optional, comment out for floating input
++#define BOOTLOADER_BTN_PORT A
++#define BOOTLOADER_BTN_PIN 2
++#define BOOTLOADER_BTN_TRIG_LEVEL 0 // 1 = HIGH; 0 = LOW
++#define BOOTLOADER_BTN_PULL 1 // 1 = Pull-Up; 0 = Pull-Down; Optional, comment out for floating input
+ 
+ // Timeout for bootloader after power-up, set to 0 to stay in bootloader forever
+ // 75ms per unit; 67 ~= 5s
+-#define BOOTLOADER_TIMEOUT_PWR 67
++#define BOOTLOADER_TIMEOUT_PWR 0
+ 
+ // Timeout (reset) for bootloader once USB Host is detected, set to 0 to stay in bootloader forever
+ // 75ms per unit; 0 costs 28 Bytes, >0 costs 48 Bytes; Comment out if not used
+diff --git a/bootloader/usb_config.h b/bootloader/usb_config.h
+index e046cbe..ff053ab 100644
+--- a/bootloader/usb_config.h
++++ b/bootloader/usb_config.h
+@@ -16,11 +16,11 @@
+ 	PC4 D-_PU
+ */
+ 
+-#define USB_PORT D     // [A,C,D] GPIO Port to use with D+, D- and DPU
+-#define USB_PIN_DP 3   // [0-4] GPIO Number for USB D+ Pin
+-#define USB_PIN_DM 4   // [0-4] GPIO Number for USB D- Pin
++#define USB_PORT C     // [A,C,D] GPIO Port to use with D+, D- and DPU
++#define USB_PIN_DP 4   // [0-4] GPIO Number for USB D+ Pin
++#define USB_PIN_DM 3   // [0-4] GPIO Number for USB D- Pin
+ //#define USB_PORT_DPU A  // [A,C,D] Override GPIO Port for DPU
+-#define USB_PIN_DPU 5  // [0-7] GPIO for feeding the 1.5k Pull-Up on USB D- Pin; Comment out if not used / tied to 3V3!
++#define USB_PIN_DPU 0  // [0-7] GPIO for feeding the 1.5k Pull-Up on USB D- Pin; Comment out if not used / tied to 3V3!
+ 
+ #define RV003USB_OPTIMIZE_FLASH 1
+
