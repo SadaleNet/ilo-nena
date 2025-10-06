@@ -31,7 +31,10 @@ enum keyboard_output_mode {
 	KEYBOARD_OUTPUT_MODE_WINDOWS,
 	KEYBOARD_OUTPUT_MODE_LINUX,
 	KEYBOARD_OUTPUT_MODE_MACOS,
-	KEYBOARD_OUTPUT_MODE_END, // Perform cleanup action. Not an actual usable output mode by user
+	// Upon detection in keyboard_out_buffer, perform teardown action. Not an actual usable output mode by user
+	KEYBOARD_OUTPUT_MODE_END,
+	 // Special mode that can be passed into keyboard_write_codepoint for added trailing space in LATIN mode.
+	KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE=KEYBOARD_OUTPUT_MODE_END,
 };
 
 void keyboard_init(void);

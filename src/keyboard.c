@@ -349,21 +349,27 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 	}
 }
 
-static void keyboard_write_ascii_string(uint8_t codepage, size_t character_id) {
+static void keyboard_write_ascii_string(uint8_t codepage, size_t character_id, uint8_t force_trailing_space) {
 	const char *str = lookup_get_ascii_string(codepage, character_id);
-	uint8_t is_emoticon = (*str == ':');
+	uint8_t is_emoticon = (*str == ':') && (*(str+1) != '\0');
 	while(*str) {
 		keyboard_push_to_out_buffer(*str);
 		str++;
 	}
 
-	// Add a space after the end of emoticon or end of a word
-	if(is_emoticon || (*(str-1) >= 'a' && *(str-1) <= 'z')) {
+	// Add a space after the end of emoticon or end of a word. Also add if force_trailing_space=1
+	if(is_emoticon || (*(str-1) >= 'a' && *(str-1) <= 'z') || force_trailing_space) {
 		keyboard_push_to_out_buffer(' ');
 	}
 }
 
 void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint) {
+	uint8_t force_trailing_space = 0;
+	if(mode == KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE) {
+		force_trailing_space = 1;
+		mode = KEYBOARD_OUTPUT_MODE_LATIN;
+	}
+
 	if(codepoint <= 0x7F || (codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH)) {
 		// Force latin mode for first 128 codepoints (ASCII) and for codepage 1 (ASCII string)
 		mode = KEYBOARD_OUTPUT_MODE_LATIN;
@@ -385,14 +391,19 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			if(codepoint <= 0x7F) {
 				// direct output - no conversion needed
 				keyboard_push_to_out_buffer(codepoint);
+
+				// Force adding trailing spcace with KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE
+				if(force_trailing_space && (codepoint != ' ' && codepoint != '\n')) {
+					keyboard_push_to_out_buffer(' ');
+				}
 			} else if(codepoint >= LOOKUP_CODEPAGE_0_START &&
 				codepoint < LOOKUP_CODEPAGE_0_START+LOOKUP_CODEPAGE_0_LENGTH) {
 				// Convert sitelen pona codepoint to sitelen Lasin
-				keyboard_write_ascii_string(0, codepoint-LOOKUP_CODEPAGE_0_START);
+				keyboard_write_ascii_string(0, codepoint-LOOKUP_CODEPAGE_0_START, force_trailing_space);
 			} else if(codepoint >= LOOKUP_CODEPAGE_1_START &&
 				codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH) {
 				// Convert codepage 1 codepoint to sitelen Lasin
-				keyboard_write_ascii_string(1, codepoint-LOOKUP_CODEPAGE_1_START);
+				keyboard_write_ascii_string(1, codepoint-LOOKUP_CODEPAGE_1_START, force_trailing_space);
 			} else {
 				switch(codepoint){
 					case 0x3000:

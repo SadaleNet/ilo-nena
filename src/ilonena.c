@@ -49,13 +49,15 @@ static enum {
 struct ilonena_config {
 	// Avoid modifying the order of variable for backward compatibility of the config
 	enum keyboard_output_mode output_mode:3;
-	uint8_t ascii_punctuation:1;
+	// extra_trailing_space for output_mode=KEYBOARD_OUTPUT_MODE_LATIN, sitelen_pona else.
+	// unable to make a union for that because it's a bitfield.
+	uint8_t sitelen_pona_punctuation_or_extra_trailing_space:1;
 	uint16_t padding:12; // Pad to 16bits
 } __attribute__((packed));
 
 static_assert(sizeof(struct ilonena_config) == 2, "Size of struct ilonena_config must be 2 bytes so that it could be stored into the optoin bytes.");
 
-static struct ilonena_config ilonena_config = {.output_mode=KEYBOARD_OUTPUT_MODE_LATIN, .ascii_punctuation=0};
+static struct ilonena_config ilonena_config = {.output_mode=KEYBOARD_OUTPUT_MODE_LATIN, .sitelen_pona_punctuation_or_extra_trailing_space=0};
 static struct ilonena_config ilonena_config_prev;
 
 static uint8_t input_buffer[LOOKUP_INPUT_LENGTH_MAX] = {0};
@@ -122,17 +124,32 @@ void refresh_display(void) {
 			lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_MAC);
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+4*16, 0, ilonena_config.output_mode == KEYBOARD_OUTPUT_MODE_MACOS ? DISPLAY_DRAW_FLAG_INVERT : 0);
 
-			// Display config of punctuation mode selection (Latin, Windows, Linux, Macos)
-			lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_Q);
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0*16, 16, 0);
-			lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_PART1);
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+1*16, 16, ilonena_config.ascii_punctuation ? DISPLAY_DRAW_FLAG_INVERT : 0);
-			lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_PART2);
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+2*16, 16, ilonena_config.ascii_punctuation ? DISPLAY_DRAW_FLAG_INVERT : 0);
-			lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_SITELEN_PONA_PART1);
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+3*16, 16, !ilonena_config.ascii_punctuation ? DISPLAY_DRAW_FLAG_INVERT : 0);
-			lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_SITELEN_PONA_PART2);
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+4*16, 16, !ilonena_config.ascii_punctuation ? DISPLAY_DRAW_FLAG_INVERT : 0);
+			// Display config of punctuation mode selection
+			if(ilonena_config.output_mode == KEYBOARD_OUTPUT_MODE_LATIN) {
+				// With extra trailing space, or without
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_Q);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0*16, 16, 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_TRAILING_SPACE_PART1);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+1*16, 16, ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_TRAILING_SPACE_PART2);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+2*16, 16, ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_PART1);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+3*16, 16, !ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+				lookup_get_image(image, 0); // Empty glyph
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+4*16, 16, !ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+			} else {
+				// With sitelen pona punctuation, or with ASCII punctuation
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_Q);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0*16, 16, 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_SITELEN_PONA_PART1);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+1*16, 16, ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_SITELEN_PONA_PART2);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+2*16, 16, ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_PART1);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+3*16, 16, !ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+				lookup_get_image(image, LOOKUP_CODEPAGE_3_START+INTERNAL_IMAGE_PUNCTUATION_LATIN_PART2);
+				display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 4+4*16, 16, !ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space ? DISPLAY_DRAW_FLAG_INVERT : 0);
+			}
 
 			lookup_get_image(image, 0xF1976); // WEKA in UCSUR, code page 0.
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 6*16, 16, 0);
@@ -231,16 +248,31 @@ int main() {
 									// Lookup the table, then send out the key according to the buffer
 									uint32_t codepoint = lookup_search(input_buffer, input_buffer_index);
 									if(codepoint > 0) {
-										if(ilonena_config.ascii_punctuation) {
-											// Using ASCII alternative punctuations
-											switch(codepoint){
-												case 0xF1990: codepoint = '['; break;
-												case 0xF1991: codepoint = ']'; break;
-												case 0xF199C: codepoint = '.'; break;
-												case 0xF199D: codepoint = ':'; break;
+										if(ilonena_config.output_mode == KEYBOARD_OUTPUT_MODE_LATIN) {
+											if(ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space) {
+												// Force send trailing space for symbols like comma, dash, period, etc.
+												// This is useful when you're not using a sitelen pona font.
+												// Example: "mi pilin e ni : tenpo ni la , ona li moli . "
+												keyboard_write_codepoint(KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE, codepoint);
+											} else {
+												// Do not force sending trailing space for symbols.
+												// It looks more compact than the former option when you're using a sitelen pona font.
+												// However, it looks terrible if you're using a standard ASCII font.
+												// Example: "mi pilin e ni :tenpo ni la ,ona li moli ."
+												keyboard_write_codepoint(KEYBOARD_OUTPUT_MODE_LATIN, codepoint);
 											}
+										} else {
+											if(!ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space) {
+												// Using ASCII punctuations instead of sitelen pona punctuations
+												switch(codepoint) {
+													case 0xF1990: codepoint = '['; break;
+													case 0xF1991: codepoint = ']'; break;
+													case 0xF199C: codepoint = '.'; break;
+													case 0xF199D: codepoint = ':'; break;
+												}
+											}
+											keyboard_write_codepoint(ilonena_config.output_mode, codepoint);
 										}
-										keyboard_write_codepoint(ilonena_config.output_mode, codepoint);
 										if(key_id == ILONENA_KEY_PANA) {
 											keyboard_write_codepoint(ilonena_config.output_mode, '\n');
 										}
@@ -284,7 +316,7 @@ int main() {
 								display_refresh_required = 1;
 							break;
 							case ILONENA_KEY_Q:
-								ilonena_config.ascii_punctuation = !ilonena_config.ascii_punctuation;
+								ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space = !ilonena_config.sitelen_pona_punctuation_or_extra_trailing_space;
 								display_refresh_required = 1;
 							break;
 							case ILONENA_KEY_WEKA:
