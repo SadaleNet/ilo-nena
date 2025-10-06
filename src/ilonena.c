@@ -84,7 +84,7 @@ void refresh_display(void) {
 			lookup_get_image(image, 0xF190E); // ILO in UCSUR, code page 0.
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 0, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
 			lookup_get_image(image, 0xF1940); // NENA in UCSUR, code page 0.
-			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 1*32, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
+			display_draw_16(image, LOOKUP_IMAGE_WIDTH+1, 1*32+8, 1, DISPLAY_DRAW_FLAG_SCALE_2x);
 
 			lookup_get_image(image, 0xF193D); // NANPA in UCSUR, code page 0.
 			display_draw_16(image, LOOKUP_IMAGE_WIDTH, 6*16, 16, 0);
