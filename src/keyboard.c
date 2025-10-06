@@ -351,12 +351,15 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 
 static void keyboard_write_ascii_string(uint8_t codepage, size_t character_id) {
 	const char *str = lookup_get_ascii_string(codepage, character_id);
+	uint8_t is_emoticon = (*str == ':');
 	while(*str) {
 		keyboard_push_to_out_buffer(*str);
 		str++;
 	}
-	if(*(str-1) >= 'a' && *(str-1) <= 'z') {
-		keyboard_push_to_out_buffer(' '); // Add a space after the end of the word
+
+	// Add a space after the end of emoticon or end of a word
+	if(is_emoticon || (*(str-1) >= 'a' && *(str-1) <= 'z')) {
+		keyboard_push_to_out_buffer(' ');
 	}
 }
 
