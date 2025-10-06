@@ -357,8 +357,8 @@ static void keyboard_write_ascii_string(uint8_t codepage, size_t character_id, u
 		str++;
 	}
 
-	// Add a space after the end of emoticon or end of a word. Also add if force_trailing_space=1
-	if(is_emoticon || (*(str-1) >= 'a' && *(str-1) <= 'z') || force_trailing_space) {
+	// Add a space after the end of emoticon or end of a word. Also add if force_trailing_space=1 (except for space and newline)
+	if(is_emoticon || (*(str-1) >= 'a' && *(str-1) <= 'z') || (force_trailing_space && *(str-1) != ' ' && *(str-1) != '\n')) {
 		keyboard_push_to_out_buffer(' ');
 	}
 }
