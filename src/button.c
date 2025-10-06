@@ -33,7 +33,7 @@
 #define BUTTON_DEBOUNCE_THRESHOLD (4)
 
 // Number of waiting required to register a button held event.
-#define BUTTON_HELD_THRESHOLD (3000*2) // 3 seconds
+#define BUTTON_HELD_THRESHOLD (1000*2) // 1 second
 
 // Column output config
 #define BUTTON_COLUMN_GPIO_PORT (GPIOD)
