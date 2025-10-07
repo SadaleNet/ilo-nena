@@ -8,3 +8,5 @@ src/*.hex
 src/*.lst
 src/*.map
 src/build.sh
+enclosure/*.FCStd1
+enclosure/*.gcode
