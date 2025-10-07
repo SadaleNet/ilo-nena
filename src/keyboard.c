@@ -86,7 +86,7 @@ const uint8_t keyboard_ascii_to_keycode[128] = {
 //   Effect: Type out CTRL+SHIFT+U, then "1f595 " on keyboard. That'd output U+1F595 on linux.
 // Lock keys such as Caps lock and Num lock are automatically toggled during the operation because
 // the unicode-input mechanism only works when the locks are in correct state.
-uint8_t keyboard_out_buffer[32] = {0}; // CONCURRENCY_VARIABLE: written by main loop, read by usb_handle_user_in_request()
+uint8_t keyboard_out_buffer[128] = {0}; // CONCURRENCY_VARIABLE: written by main loop, read by usb_handle_user_in_request()
 size_t keyboard_out_buffer_write_index = 0; // CONCURRENCY_VARIABLE: ditto
 size_t keyboard_out_buffer_read_index = 0; // CONCURRENCY_VARIABLE: written by usb_handle_user_in_request(), read by main loop
 
