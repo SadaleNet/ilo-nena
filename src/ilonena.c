@@ -30,6 +30,7 @@
 #include "keyboard.h"
 #include "optionbytes.h"
 #include "tim2_task.h"
+#include "watchdog.h"
 
 #include "ch32fun.h"
 #include "rv003usb.h"
@@ -193,6 +194,9 @@ void clear_input_buffer(void) {
 }
 
 int main() {
+	// Kickoff the watchdog as early as possible
+	watchdog_init();
+
 	SystemInit();
 
 	// Enable interrupt nesting for rv003usb software USB library
@@ -217,6 +221,8 @@ int main() {
 	// the last_input_tick math would overflow.
 	uint32_t last_input_tick = systick_now;
 	uint32_t seconds_elapsed_since_last_input = 0;
+
+	watchdog_feed();
 
 	while(1) {
 		systick_now = SysTick->CNT;
@@ -449,5 +455,8 @@ int main() {
 			display_refresh_required = 0;
 			refresh_display();
 		}
+
+		// Feed the watchdog at the end of main loop
+		watchdog_feed();
 	}
 }
