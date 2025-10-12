@@ -95,11 +95,11 @@ for word in wakalito_mapping['matches']:
 	elif word['replace'] == '\n':
 		word['replace'] = '↵'
 	elif word['replace'] == '...':
-		word['replace'] = '…'
+		word['replace'] = '. . .'
 	elif word['replace'] == '[':
-		word['replace'] = '󱲆'
+		word['replace'] = '󱦐'
 	elif word['replace'] == ']':
-		word['replace'] = '󱲇'
+		word['replace'] = '󱦑'
 	word['replace'] = word['replace'].replace('(', '<').replace(')', '>')
 
 	entry = []
