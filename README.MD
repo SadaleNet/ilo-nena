@@ -50,7 +50,7 @@ user_manual/    # jan li lukin e ona la jan ni li kama sona e ilo nena li ken ke
 jan Sate li pali e ilo nena. taso jan ni li lon ala la ilo nena li ken ala lon:
 
 * jan Sonja li pali e [toki pona](https://en.wikipedia.org/wiki/Toki_Pona)
-* jan Likipi en kala pona Tonyu en jan jan Tepo li pali e [nasin sitelen Wakalito](https://sona.pona.la/wiki/Wakalito)
+* jan Likipi en kala pona Tonyu en jan Tepo li pali e [nasin sitelen Wakalito](https://sona.pona.la/wiki/Wakalito)
 * jan Osi li pali e [sitelen leko lili](https://toki.pona.billsmugs.com/lipu-tenpo/2022-05-15-sitelen_pona/). sitelen pi ilo nena mi li kepeken ona.
 * jan ali pi toki pona. sina kin! :-)
 
@@ -65,7 +65,7 @@ lipu anpa ni li mi ala. sina wile lukin e ken ona la o lukin e nimi insa sitelen
 
 mi pali e lipu ante ali. ken ona li ken "BSD 2-clause".
 
-## License
+## License (mi kepeken toki Inli kin tan ni: ni li ijo suli)
 
 The following files are adapted from external soruces. Please read the comment inside the files to view the license information:
 
