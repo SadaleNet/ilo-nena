@@ -1,3 +1,10 @@
+The bootloader is used for performing firmware update via USB by holding the PANA button before powering the device on.
+
+This patch file is to be patched against the following repo: https://github.com/cnlohr/rv003usb
+The commit used was 35e0f688a9a041ed8cec37fcbb458df095dc0d79. But this patch should probably also work for later versions.
+What this patch does is to do some IO remapping and to enable holding button on boot to enter bootloader mode.
+The patch can be applied by using the `git apply` command.
+
 diff --git a/bootloader/bootloader.c b/bootloader/bootloader.c
 index 07260bf..4bae5b4 100644
 --- a/bootloader/bootloader.c
