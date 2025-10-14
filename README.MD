@@ -1,4 +1,4 @@
-[toki: **[toki pona](README.MD)**] | [Language: [English](README-EN.MD)]
+* o anu e toki (Language Selection): **[toki pona](README.MD)** | [toki ike Inli (English)](README-EN.MD)
 
 # ilo nena - ilo pi nasin sitelen Wakalito
 
