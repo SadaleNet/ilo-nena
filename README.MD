@@ -37,12 +37,13 @@ sina wile kepeken ilo nena la o pali e ni lon ilo sona sina:
 ## sona seme li lon?
 
 ```
-bootloader/     # kepeken sona ni la sina ken pana e sona sin tawa ilo nena kepeken nasin "USB"
-enclosure/      # selo
-keycap_label/   # sitelen lon nena
-kicad/          # lipu kiwen sona. ilo nena li jo e lipu kiwen. jan li pana e sona tawa ona la ilo nena li ken pali.
-src/            # kepeken sona ni la ilo nena li pali. ilo nena li lukin e nena li pana e sitelen tawa ilo sona.
-user_manual/    # jan li lukin e ona la jan ni li kama sona e ilo nena li ken kepeken ona.
+bootloader/      # kepeken sona ni la sina ken pana e sona sin tawa ilo nena kepeken nasin "USB"
+cardboard_label/ # sitelen poki
+enclosure/       # selo
+keycap_label/    # sitelen lon nena
+kicad/           # lipu kiwen sona. ilo nena li jo e lipu kiwen. jan li pana e sona tawa ona la ilo nena li ken pali.
+src/             # kepeken sona ni la ilo nena li pali. ilo nena li lukin e nena li pana e sitelen tawa ilo sona.
+user_manual/     # jan li lukin e ona la jan ni li kama sona e ilo nena li ken kepeken ona.
 ```
 
 ## jan pona pi ilo nena
