@@ -1,7 +1,6 @@
-kicad/gerber
-kicad/smt
 kicad/ilonena-backups/**
 kicad/fp-info-cache
+kicad/production
 src/*.bin
 src/*.elf
 src/*.hex
