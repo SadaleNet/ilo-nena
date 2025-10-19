@@ -78,7 +78,7 @@ mi pali e lipu ante ali. ken ona li ken "BSD 2-clause".
 
 ## License (mi kepeken toki Inli kin tan ni: ni li ijo suli)
 
-The following files are adapted from external soruces. Please read the comment inside the files to view the license information:
+The following files are adapted from external sources. Please read the comment inside the files to view the license information:
 
 * src/usb_config.h - Adapted from MIT license source.
 * src/generated.c - Contains font and strings generated from external files
