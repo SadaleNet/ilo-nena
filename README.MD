@@ -34,6 +34,16 @@ sina wile kepeken ilo nena la o pali e ni lon ilo sona sina:
 	* o anu e nasin kepeken nena "luka" en nena "la". sina pini la o pilin e nena "pana"
 	* wawa li weka la sona pi nasin sina li weka ala
 
+## nasin pi ante sona
+
+sina ken pana e sona sin tawa ilo nena kepeken ilo "[minichlink](https://github.com/cnlohr/ch32fun/tree/master/minichlink)" kepeken nasin ni:
+
+1. ilo nena sina o jo ala e wawa.
+2. o pilin awen e nena "pana". o weka ala e luka sina.
+3. o pana e wawa tawa ilo nena sina kepeken ilo sona sina
+4. tenpo ni la ilo nena sina li sitelen e ala lon ma sitelen ona. ni li pona.
+5. o kepeken ilo minichlink lon ilo sona sina: `./minichlink -w /ma/pi/sona_sin_sina.bin 0x08000000 -b`
+
 ## sona seme li lon?
 
 ```
