@@ -2,7 +2,7 @@
 
 # ilo nena - ilo pi nasin sitelen Wakalito
 
-![sitelen](./docs/sitelen_suli.png)
+![sitelen](./docs/sitelen_suli.jpg)
 
 ilo nena ni li ken pali e sitelen pona tawa ilo sona kepeken nasin sitelen Wakalito. ilo nena la:
 
