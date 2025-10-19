@@ -47,7 +47,7 @@ Firmware update can be performed via USB with "[minichlink](https://github.com/c
 ```
 bootloader/      # Bootloader for providing USB firmware update functionality (a patch against rv003usb)
 cardboard_label/ # Label slapped onto the packaging cardboard
-enclosure/       # The enclosure of the ilo nena unit
+enclosure/       # The 3D printed enclosure design
 keycap_label/    # The keycap label design printed onto UV DTF transfer sheet
 kicad/           # Electronics design
 src/             # Firmware source code
@@ -60,7 +60,7 @@ ilo nena was developed by Sadale (jan Sate). This project wouldn't have been pos
 
 * jan Sonja: Created [Toki Pona langauge](https://en.wikipedia.org/wiki/Toki_Pona)
 * jan Likipi, kala pona Tonyu and jan Tepo: Developed [Wakalito](https://sona.pona.la/wiki/Wakalito) input method for sitelen pona
-* jan Osi: Created the public domain font "[sitelen leko lili](https://toki.pona.billsmugs.com/lipu-tenpo/2022-05-15-sitelen_pona/)", which's embedded into ilo nena
+* jan Osi: Created the public domain font [sitelen leko lili](https://toki.pona.billsmugs.com/lipu-tenpo/2022-05-15-sitelen_pona/), which's embedded into ilo nena
 * All of the Toki Pona speakers around the world! This product's useless without a solid community! :-)
 
 For all of the people above, you have my gratitude. Thank you very much!
