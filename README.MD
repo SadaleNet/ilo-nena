@@ -26,12 +26,12 @@ sina wile kepeken ilo nena la o pali e ni lon ilo sona sina:
 3. o kepeken linja "USB". kepeken linja ni la ilo sona sina en ilo nena li kama wan. kin la ilo nena li kama jo e wawa
 4. o pilin awen e nena pi nimi ala. sina pilin e ona la o weka ala e palisa luka sina. sina kama lon ma ni la sina ken anu e nasin. o anu e nasin sama nasin pi ilo sona sina:
 	* ![ma anu](docs/ma_anu.png)
-	* sina ken anu e nasin kepeken nena "luka". sina pini la o pilin e nena "pana"
+	* sina ken anu e nasin kepeken nena "la". sina pini la o pilin e nena "pana"
 5. o open e ilo sitelen lon ilo sona sina. o kepeken sitelen "FairFax HD". ni la sina ken pana e sitelen pona kepeken ilo nena a!
 6. (ken) tenpo ali la sina kepeken ilo sona pi nasin sama la, sina ken pali e ni:
 	* o weka e wawa tan ilo nena sina
 	* o pilin awen e nena "weka". ni la o pana e wawa tawa ilo nena. o weka ala e palisa luka sina.
-	* o anu e nasin kepeken nena "luka" en nena "la". sina pini la o pilin e nena "pana"
+	* o anu e nasin kepeken nena "la" en nena "luka". sina pini la o pilin e nena "pana"
 	* wawa li weka la sona pi nasin sina li weka ala
 
 ## nasin pi ante sona

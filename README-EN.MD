@@ -24,12 +24,12 @@ ilo nena is a purpose-built keyboard for typing sitelen pona glyph of toki pona 
 3. Connect USB cable, one side with ilo nena, another side with your computer
 4. Hold the space key to enter the config screen below:
 	* ![Configuration screen](docs/ma_anu.png)
-	* press the "luka" key (leftmost column, central row) to select the OS. Once done, press the "pana" key (the yellow key on the rightmost column)
+	* press the "la" key (leftmost column, topmost row) to select the OS. Once done, press the "pana" key (the yellow key on the rightmost column)
 5. Launch any text editing software and select the font "FairFax HD". You're all set! Now that you can type sitelen pona with ilo nena!
 6. (Optional) Here's how you set the default OS to use upon powering on the ilo nena:
 	* Remove power from ilo nena
 	* Hold the "weka" key (the yellow key on second column to the right) and connect USB cable.
-	* Select configuration with the "luka" key and the "la" key (leftmost column, topmost row). After you're done, press the "pana" key
+	* Select configuration with the "la" key and the "luka" key (leftmost column, central row). After you're done, press the "pana" key
 	* Your default settings is saved to ilo nena and preserved across power cycles
 
 ## Firmware Update
