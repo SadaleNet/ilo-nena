@@ -71,6 +71,7 @@ jan ni li pona mute tawa ilo nena. pona tawa sina ali!
 
 lipu anpa ni li mi ala. sina wile lukin e ken ona la o lukin e nimi insa sitelen insa ona:
 
+* bootloader/bootloader.bin
 * src/usb_config.h
 * src/generated.c
 
@@ -80,7 +81,8 @@ mi pali e lipu ante ali. ken ona li ken "BSD 2-clause".
 
 The following files are adapted from external sources. Please read the comment inside the files to view the license information:
 
-* src/usb_config.h - Adapted from MIT license source.
+* bootloader/bootloader.bin - Built from MIT license source
+* src/usb_config.h - Adapted from MIT license source
 * src/generated.c - Contains font and strings generated from external files
 
 All other files are my own and they're licensed under BSD 2-clause license.

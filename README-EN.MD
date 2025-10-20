@@ -69,7 +69,8 @@ For all of the people above, you have my gratitude. Thank you very much!
 
 The following files are adapted from external sources. Please read the comment inside the files to view the license information:
 
-* src/usb_config.h - Adapted from MIT license source.
+* bootloader/bootloader.bin - Built from MIT license source
+* src/usb_config.h - Adapted from MIT license source
 * src/generated.c - Contains font and strings generated from external files
 
 All other files are my own and they're licensed under BSD 2-clause license.
