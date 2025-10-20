@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "ilo nena")
-		(date "2025-08-18")
-		(rev "rev0")
+		(date "2025-10-18")
+		(rev "rev1")
 		(company "jan Sate (Sadale.net)")
 	)
 	(lib_symbols
