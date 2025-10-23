@@ -9,6 +9,12 @@ sitelen ni li lon poki pi ilo nena. nasin kepeken:
 
 (PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! ma ni o jo e sitelen pi lipu suli e sitelen pi lipu lili e sitelen poki)
 
+## o poki e ali!
+
+poki li jo e ilo nena e lipu sona e linja USB MicroB (suli ona li 1.5m):
+
+(PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! ma ni li jo e ali insa poki!)
+
 # Cardboard Label
 
 To print:
@@ -18,4 +24,6 @@ To print:
 3. Cut it into 9 pieces with a paper cutter
 4. Put each of the stickers onto the surface of the cardboard
 
-(TODO: pic!)
+## Packing
+
+Pack the items as shown on the photo way above. The package contains ilo nena unit, user manual and 1.5m USB microB cable
