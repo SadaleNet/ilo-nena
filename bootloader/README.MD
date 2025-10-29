@@ -1,4 +1,6 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
+
+![nasin pi pana ilo "Bootloader"](../docs-assets/bootloader.jpg)
 
 # ilo "Bootloader" li seme?
 
@@ -7,8 +9,6 @@
 * tenpo pini la mi kin li pali e lipu `bootloader.bin`. sina ken kepeken e ona e lipu `bootloader.patch` ala.
 * sina ken pana e ilo ni tawa ilo nena kepeken ilo tu ni lon tenpo sama: ilo "WCH-LinkE" en ilo "minichlink". o kepeken nimi ni: `./minichlink -a -w bootloader.bin bootloader -B`
 * kin la sina o kepeken nimi ni: `./minichlink -w +a55af708 option`. sina kepeken ala nimi ni la ilo ni li pali ala a!
-
-![nasin pi pana ilo "Bootloader"](../docs-assets/bootloader.jpg)
 
 ## ken
 

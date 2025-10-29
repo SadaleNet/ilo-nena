@@ -1,4 +1,6 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
+
+![nasin pana pi ilo sitelen](../docs-assets/oled.jpg)
 
 # lipu kiwen sona
 
@@ -14,9 +16,8 @@ o pana e ilo sitelen tawa lipu kiwen sona kepeken nasin ni:
 
 1. o esun e ilo sitelen e palisa kulupu. nimi pi ilo sitelen li ni: SSD1306 128x32 0.91" OLED I2C
 2. o pana e palisa kulupu tawa lipu kiwen sona
-3. o pana e ilo sitelen lon sewi pi palisa kulupu. o sike ala e ilo sitelen a!
-
-(PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! TODO: put pic here)
+3. o pana e ilo sitelen lon sewi pi palisa kulupu.
+4. o pana e wawa tawa lipu lili pi ilo sitelen
 
 # PCBA Source and Production Files
 
@@ -32,4 +33,5 @@ Soldering the OLED:
 
 1. Purchase SSD1306 128x32 0.91" OLED I2C and its 2.54mm 4p pin header
 2. Solder the pin header onto the board with a soldering iron.
-3. Solder the OLED on top of the pin header. Make sure that it aligns correctly against the silk mark so that it would fit into the enclosure.
+3. Solder the OLED on top of the pin header.
+4. Fold the peeling tab of the OLED so that it would be exposed and accessible thru the enclosure

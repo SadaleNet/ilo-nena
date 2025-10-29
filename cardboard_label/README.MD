@@ -1,4 +1,8 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
+
+![nasin pi pana sitelen tawa poki pi ilo nena](../docs-assets/cardboard.jpg)
+
+![ali insa poki](../docs-assets/cardboard_packing.jpg)
 
 # sitelen poki
 
@@ -9,13 +13,9 @@ sitelen ni li lon poki pi ilo nena. nasin kepeken:
 3. lipu suli wan o kama lipu lili mute
 4. o pana e lipu lili wan tawa poki wan. o pana e lipu lili nanpa tu tawa poki nanpa tu. ni la o kepeken lipu lili ali sina.
 
-![nasin pi pana sitelen tawa poki pi ilo nena](../docs-assets/cardboard.jpg)
-
 ## o poki e ali!
 
 poki li jo e ilo nena e lipu sona e linja USB MicroB (suli ona li 1.5m):
-
-![ali insa poki](../docs-assets/cardboard_packing.jpg)
 
 suli poki li ni: 130x80x25mm
 

@@ -1,4 +1,6 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
+
+![nasin wan pi selo](../docs-assets/enclosure.jpg)
 
 # selo
 
@@ -9,8 +11,6 @@ selo li jo e ijo tu. ijo `ilonena_enclosure-Bottom.stl` en ijo `ilonena_enclosur
 1. o kama jo e palisa "PA2.3x10" tu tu.
 2. o sike ala e ijo `ilonena_enclosure-Bottom.stl`
 3. o pana e lipu sona insa selo. o wan e ali kepeken palisa "PA2.3x10". kin la o sewi lili e lipu pi ilo sitelen.
-
-![nasin wan pi selo](../docs-assets/enclosure.jpg)
 
 sina ken ante e selo ni kepeken lipu `ilonena_enclosure.FCStd`.
 

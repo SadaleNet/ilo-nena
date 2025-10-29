@@ -1,8 +1,8 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
-
-# ilo nena - ilo pi nasin sitelen Wakalito
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
 
 ![sitelen](./docs-assets/sitelen_suli.jpg)
+
+# ilo nena - ilo pi nasin sitelen Wakalito
 
 ilo nena ni li ken pali e sitelen pona tawa ilo sona kepeken nasin sitelen Wakalito. ilo nena la:
 
@@ -78,8 +78,6 @@ lipu anpa ni li mi ala. sina wile lukin e ken ona la o lukin e nimi insa sitelen
 mi pali e lipu ante ali. ken ona li ken "BSD 2-clause".
 
 # ilo nena - Toki Pona Unicode Keyboard with Built-in Wakalito Input Method
-
-![Image of ilo nena typing sitelen pona to a computer](./docs-assets/sitelen_suli.jpg)
 
 ilo nena is a purpose-built keyboard for typing sitelen pona glyph of toki pona into computers. Feature list:
 

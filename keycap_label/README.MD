@@ -1,4 +1,6 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
+
+![nasin pi pana sitelen tawa nena](../docs-assets/keycap-label.jpg)
 
 # sitelen nena
 
@@ -9,8 +11,6 @@ kepeken nasin ni la sina ken pana e sitelen tawa nena pi ilo nena:
 3. o kama jo e lipu `ilonena-label.png` li pana e ona lon sewi nena pi ilo nena
 4. o pilin e nena ali. sitelen li kama lon nena
 5. sitelen ali pi lipu `ilonena-label.png` li kama lon nena. lipu ni li kama lipu pi sitelen ala. o weka e lipu pi sitelen ala
-
-(PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! TODO: put pic here)
 
 # Keycap labels
 

@@ -1,8 +1,8 @@
-** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+**(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
+
+![lipu sona pi ilo nena](../docs-assets/user_manual.jpg)
 
 # lipu sona
-
-(PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! TODO: put pic of the user manual here)
 
 sina ken pali e lipu sona kepeken nasin ni:
 
