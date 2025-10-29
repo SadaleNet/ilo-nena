@@ -1,6 +1,6 @@
 **(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
 
-![nasin pi pana sitelen tawa nena](../docs-assets/keycap-label.jpg)
+![nasin pi pana sitelen tawa nena](../docs-assets/keycap_label.jpg)
 
 # sitelen nena
 
