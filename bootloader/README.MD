@@ -1,3 +1,5 @@
+** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+
 # ilo "Bootloader" li seme?
 
 * kepeken ilo ni la jan li ken pilin e nena "pana" li pana e sona sin tawa ilo nena kepeken nasin "USB".
@@ -6,7 +8,7 @@
 * sina ken pana e ilo ni tawa ilo nena kepeken ilo tu ni lon tenpo sama: ilo "WCH-LinkE" en ilo "minichlink". o kepeken nimi ni: `./minichlink -a -w bootloader.bin bootloader -B`
 * kin la sina o kepeken nimi ni: `./minichlink -w +a55af708 option`. sina kepeken ala nimi ni la ilo ni li pali ala a!
 
-![nasin pi pana ilo "Bootloader"](../docs/bootloader.jpg)
+![nasin pi pana ilo "Bootloader"](../docs-assets/bootloader.jpg)
 
 ## ken
 

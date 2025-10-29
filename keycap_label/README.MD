@@ -1,3 +1,5 @@
+** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+
 # sitelen nena
 
 kepeken nasin ni la sina ken pana e sitelen tawa nena pi ilo nena:

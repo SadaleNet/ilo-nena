@@ -1,12 +1,14 @@
+** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+
 # lipu sona
+
+(PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! TODO: put pic of the user manual here)
 
 sina ken pali e lipu sona kepeken nasin ni:
 
 1. o kama jo e lipu pi suli "A5". sina tu e lipu "A4" wan la ona li kama lipu "A5" tu.
 2. o pana e `lipu_sona.pdf` tawa lipu "A5" sina.
 3. o lili e lipu kepeken luka sina. lipu sona li kama lon:
-
-(PALI PI TENPO KAMA: jan Sate o pana e sitelen lon ma ni! TODO: put pic of the user manual here)
 
 lipu sona li lukin ike la o ante e lipu `lipu_sona.pdf` kepeken nasin ni:
 

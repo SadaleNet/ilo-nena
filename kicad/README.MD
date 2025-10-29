@@ -1,3 +1,5 @@
+** (English: Scrolldown for English | toki Inli li lon anpa pi toki pona) **
+
 # lipu kiwen sona
 
 ma ni li jo e sona pi lipu kiwen. mi pali e ona kepeken ilo "KiCad" en ilo lili "[Fabrication-Toolkit](https://github.com/bennymeg/Fabrication-Toolkit)".
@@ -29,5 +31,5 @@ To order PCBA on your own:
 Soldering the OLED:
 
 1. Purchase SSD1306 128x32 0.91" OLED I2C and its 2.54mm 4p pin header
-2. Solder the pin header onto the board with a soldering iron. Since it isn't the tallest component on the board, you may need tweezers or a block to hold the pin header while soldering.
+2. Solder the pin header onto the board with a soldering iron.
 3. Solder the OLED on top of the pin header. Make sure that it aligns correctly against the silk mark so that it would fit into the enclosure.
