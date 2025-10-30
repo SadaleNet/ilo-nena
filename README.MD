@@ -2,6 +2,8 @@
 
 ![sitelen](./docs-assets/sitelen_suli.jpg)
 
+[https://ilonena.sadale.net/](https://ilonena.sadale.net/)
+
 # ilo nena - ilo pi nasin sitelen Wakalito
 
 ilo nena ni li ken pali e sitelen pona tawa ilo sona kepeken nasin sitelen Wakalito. ilo nena la:
@@ -49,12 +51,27 @@ sina ken pana e sona sin tawa ilo nena kepeken ilo "[minichlink](https://github.
 ```
 bootloader/      # kepeken sona ni la sina ken pana e sona sin tawa ilo nena kepeken nasin "USB"
 cardboard_label/ # sitelen poki
+docs-assets/     # sitelen pi lipu README.MD
 enclosure/       # selo
 keycap_label/    # sitelen lon nena
 kicad/           # lipu kiwen sona. ilo nena li jo e lipu kiwen. jan li pana e sona tawa ona la ilo nena li ken pali.
 src/             # kepeken sona ni la ilo nena li pali. ilo nena li lukin e nena li pana e sitelen tawa ilo sona.
 user_manual/     # jan li lukin e ona la jan ni li kama sona e ilo nena li ken kepeken ona.
+full_bom_batch_5.csv  # lipu ni li pana e sona ni: jan li wile pali e ilo nena la ona o esun e ijo seme?
 ```
+
+## o esun e ilo nena!
+
+tenpo ni la sina ken ala esun e ona. o awen lili! mi wile pali e esun Sate. ni la sina ken esun e ona.
+
+mi jo e mani namako la mi wile pana e ilo nena tawa jan pi mani ala! :)
+
+## o pali e ilo nena!
+
+* o lukin e lipu "README.MD" insa poki ni:
+	* `kicad/` -> `keycap_label/` -> `bootloader/` -> `src/` ->  `enclosure/` -> `user_manual/` -> `cardboard_label/`
+* o lukin e lipu `full_bom_batch_5.csv`. ni la sina ken esun e ijo pali pi ilo nena.
+	* o sona e ni: ilo pali li lon ala lipu ni a! ilo pali li ni: ilo WCH-LinkE en ilo seli en ilo pi pali sitelen en ijo ante.
 
 ## jan pona pi ilo nena
 
@@ -74,17 +91,18 @@ lipu anpa ni li mi ala. sina wile lukin e ken ona la o lukin e nimi insa sitelen
 * bootloader/bootloader.bin
 * src/usb_config.h
 * src/generated.c
+* src/ilonena.bin - ona li jo e `src/usb_config.h` en `src/generated.c`
 
 mi pali e lipu ante ali. ken ona li ken "BSD 2-clause".
 
 # ilo nena - Toki Pona Unicode Keyboard with Built-in Wakalito Input Method
 
-ilo nena is a purpose-built keyboard for typing sitelen pona glyph of toki pona into computers. Feature list:
+ilo nena is a purpose-built keyboard for typing sitelen pona glyph of Toki Pona into computers. Feature list:
 
 * Built-in [Wakalito](https://sona.pona.la/wiki/Wakalito) input method
 * Supports Unicode output with [sitelen pona UCSUR codepoints](https://www.kreativekorp.com/ucsur/charts/sitelen.html)
 * Compact form factor: 102mm x 64mm x 18mm
-* Supports firmware upgrade via USB
+* Supports USB flashing for firmware update or custom firmware
 * Fully open source (firmware, PCBA, enclosure, user manual, etc.)
 * Cost-optimized for small volume production. Easy to build your own unit
 
@@ -122,12 +140,27 @@ Firmware update can be performed via USB with "[minichlink](https://github.com/c
 ```
 bootloader/      # Bootloader for providing USB firmware update functionality (a patch against rv003usb)
 cardboard_label/ # Label slapped onto the packaging cardboard
+docs-assets/     # Images for README.MD
 enclosure/       # The 3D printed enclosure design
 keycap_label/    # The keycap label design printed onto UV DTF transfer sheet
 kicad/           # Electronics design
 src/             # Firmware source code
 user_manual/     # User manual source and PDF
+full_bom_batch_5.csv  # Full BOM with price assuming batch of 5 units
 ```
+
+## Ordering (Not recommended)
+
+As I'm operating on a non-profit basis with my own free labor, to avoid burn out and limit the scale of operation, this device is only available for order to Toki Pona speakers.
+
+I do not recommend that but if you really want it that badly and you don't speak Toki Pona, please use a contact method mentioned in [sadale.net](https://sadale.net/). Tell me your situation. I might be able to arrange something for you.
+
+## Build your Own Unit (Recommended)
+
+* Just follow the the README files inside the folders in the following sequence:
+	* `kicad/` -> `keycap_label/` -> `bootloader/` -> `src/` ->  `enclosure/` -> `user_manual/` -> `cardboard_label/`
+* A full BOM `full_bom_batch_5.csv` is available for your procurement reference
+	* Warning: The BOM doesn't contain equipments like WCH-LinkE programmer, soldering iron, printer, etc.
 
 ## Credits
 
@@ -147,5 +180,6 @@ The following files are adapted from external sources. Please read the comment i
 * bootloader/bootloader.bin - Built from MIT license source
 * src/usb_config.h - Adapted from MIT license source
 * src/generated.c - Contains font and strings generated from external files
+* src/ilonena.bin - Built with `src/usb_config.h` and `src/generated.c`
 
 All other files are my own and they're licensed under BSD 2-clause license.
