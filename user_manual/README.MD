@@ -16,7 +16,7 @@ lipu sona li lukin ike la o ante e lipu `lipu_sona.pdf` kepeken nasin ni:
 2. o pilin e nena "File > Print"
 3. o ante e nanpa lon ma ni:
 
-![sitelen ni li pana e sona ni: jan o ante e nanpa seme?](./docs/margin.png)
+![sitelen ni li pana e sona ni: jan o ante e nanpa seme?](../docs-assets/margin.png)
 
 4. o pilin e nena "Print to file". ni la lipu "PDF" sin li kama.
 5. o kepeken lipu "PDF" sin. ona li lukin ike o awen ante e nanpa kepeken nasin sama.

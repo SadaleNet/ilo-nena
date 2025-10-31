@@ -92,8 +92,11 @@ lipu anpa ni li mi ala. sina wile lukin e ken ona la o lukin e nimi insa sitelen
 * src/usb_config.h
 * src/generated.c
 * src/ilonena.bin - ona li jo e `src/usb_config.h` en `src/generated.c`
+* user_manual/lipu_sona.odt en user_manual/lipu_sona.pdf - ona li jo e nimi ali pi nasin sitelen Wakalito
 
 mi pali e lipu ante ali. ken ona li ken "BSD 2-clause".
+
+o sona e ni: mi pali ala e nasin sitelen Wakalito. jan pali pi nasin sitelen Wakalito li toki e ni tawa mi: mi ken pali e ilo nena li pana e ona tawa jan ante. sina pali e ilo nena sama li wile pana e ona tawa jan ante la o toki tawa jan pali pi nasin sitelen Wakalito!
 
 # ilo nena - Toki Pona Unicode Keyboard with Built-in Wakalito Input Method
 
@@ -181,5 +184,8 @@ The following files are adapted from external sources. Please read the comment i
 * src/usb_config.h - Adapted from MIT license source
 * src/generated.c - Contains font and strings generated from external files
 * src/ilonena.bin - Built with `src/usb_config.h` and `src/generated.c`
+* user_manual/lipu_sona.odt and user_manual/lipu_sona.pdf - Contains lookup table of Wakalito input method
 
 All other files are my own and they're licensed under BSD 2-clause license.
+
+Reminder: I do not own the design of Wakalito input method included in the `src/generated.c` file. I've obtain the permission from the Wakalito authors for making it "as long as it isn't made with profit in mind". If you want to make your own unit and redistribute/sell that, please ask the authors of Wakalito for permission.
