@@ -115,7 +115,7 @@ ilo nena is a purpose-built keyboard for typing sitelen pona glyph of Toki Pona 
 2. Which operating system are you using?
 	* 🪟 Windows: Install [WinCompose](https://github.com/ell1010/wincompose). ilo nena uses "R_ALT+U+digits" to type Unicode
 	* 🐧 Linux: Supported out of the box for most linux distros. ilo nena uses "CTRL+SHIFT+U+digits"
-	* 🍎 Apple: Configure and use the built-in "Unicode Hex Input". ilo nena uses "Option+digits"
+	* 🍎 Mac OS: Configure and use the built-in "Unicode Hex Input". ilo nena uses "Option+digits"
 	* Others: ilo nena has Latin (ASCII) mode that's compatible with all devices. However, it couldn't output Unicode in this mode. You would need a font that supports conversion between Latin to sitelen pona such as FairFax Pona HD.
 3. Connect USB cable, one side with ilo nena, another side with your computer
 4. Hold the space key to enter the config screen below:
