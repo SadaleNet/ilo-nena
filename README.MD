@@ -1,6 +1,6 @@
 **(English: Scrolldown for English | toki ike Inli li lon anpa pi toki pona)**
 
-![sitelen](./docs-assets/sitelen_suli.jpg)
+![sitelen](./docs-assets/sitelen_suli.gif)
 
 [https://ilonena.sadale.net/](https://ilonena.sadale.net/)
 
