@@ -2,9 +2,9 @@ tomo esun,ijo,mani seme?,mani kulupu,suli kulupu,nanpa wile,mani USD pi ilo nena
 Supplier,Item,Cost Unit,Cost at MOQ,MOQ,Quantity,USD per unit,Scrap Rate,USD per unit post-scrap,Shipping fee,USD shipping fee,URL
 JLCPCB,PCBA,USD,43,5,1,8.60,0.10,9.56,5,6.00,https://jlcpcb.com/
 启望3D,Enclosure ABS Black/FDM,RMB,7,1,1,1.08,0.05,1.13,8,1.23,https://item.taobao.com/item.htm?id=844902360181
+信诚新电子,"OLED 0.91"" SSD1306 128x32 white, non-soldered",RMB,6,1,1,0.92,0.05,0.97,2,0.31,https://item.taobao.com/item.htm?id=799718292351&skuId=5926153899425
 小福水晶标厂,Keycap Label (UV DTF Sheet),RMB,20,10,1,0.31,0.20,0.38,0,0.00,https://item.taobao.com/item.htm?id=694929996955&skuId=5221531111683
 telesky旗舰店,"Keycap, Red 12x12",RMB,2,30,20,0.21,0.20,0.26,0,0.00,https://detail.tmall.com/item.htm?id=548295391131&skuId=3325455760644
-信诚新电子,"OLED 0.91"" SSD1306 128x32 white, non-soldered",RMB,1,1,1,0.15,0.05,0.16,2,0.31,https://item.taobao.com/item.htm?id=799718292351&skuId=5926153899425
 固万基五金科技,PA2.3x10 self-tapping screw,RMB,2.23,100,4,0.01,0.05,0.01,0,0.00,https://item.taobao.com/item.htm?id=39879981066&skuId=5040813371982
 专正电子厂,USB MicroB Cable Black 1.5m (37+37+13+13 stranded),RMB,0.76,1,1,0.12,0.05,0.12,4,0.62,https://item.taobao.com/item.htm?id=575077271834&skuId=4873575713304
 chuanyue旗舰店,Cardboard Box 130x80x25 (hardness level 4),RMB,6.65,50,1,0.02,0.20,0.03,0,0.00,https://detail.tmall.com/item.htm?id=710482007210&skuId=4977614272113
@@ -15,6 +15,6 @@ chuanyue旗舰店,Cardboard Box 130x80x25 (hardness level 4),RMB,6.65,50,1,0.02,
 安立信旗舰店,Lead-free soldering coil,RMB,24.8,1,0.01,0.04,0.00,0.04,0,0.00,https://detail.tmall.com/item.htm?id=588626885887&skuId=5970012670897
 (Any store IRL),Toner cartridge for printing on label P2500,HKD,350,1,0.000063,0.00,0.00,0.00,0,0.00,-
 -,Electricity for soldering (says 0.1kWh),HKD,0.1,1,1,0.01,0.00,0.01,0,0.00,-
--,mani ali (Total Cost),USD,-,-,-,-,-,11.74,-,11.85,-
+-,mani ali (Total Cost),USD,-,-,-,-,-,12.55,-,11.85,-
 ,,,,,,,,^ mani pi ilo nena wan ^,,^ mani pi poki tawa ^,
 ,,,,,,,,^ Total cost per unit ^,,^ Shipping fee per batch ^,
