@@ -142,6 +142,8 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 		static uint8_t lock_indicator_target_mask = 0;
 		static uint8_t lock_indicator_original = 0;
 		static uint32_t lock_release_wait_counter = 0;
+		// For inserting delay
+		static uint8_t key_step_delay_counter;
 		static enum {
 			// Wait for a command (i.e. enum keyboard_output_mode) in the output buffer
 			// If a command is detected, toggle lock keys (Num lock, Caps lock, etc.)
@@ -162,6 +164,10 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			KEY_STEP_TOGGLE_LOCKS_2,
 			// Release the lock keys. Also wait for the lock key toggle to take effect
 			KEY_STEP_TOGGLE_LOCKS_2_WAIT,
+			// For KEYBOARD_OUTPUT_MODE_DELAY only: loads the delay value
+			KEY_STEP_DELAY_SET,
+			// Wait for completion of the delay
+			KEY_STEP_DELAY_WAIT,
 		} key_step = KEY_STEP_WAIT_COMMAND;
 
 		// Make a response first! The USB host can't wait
@@ -174,6 +180,7 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			{
 				uint8_t key_id = keyboard_out_buffer[keyboard_out_buffer_read_index];
 				if(keyboard_out_buffer_read_index != keyboard_out_buffer_write_index) {
+					uint8_t skip_postprocessing = 0;
 					// Press the lock keys (num lock, caps lock, etc.) state according to the mode received
 					mode = key_id-KEYBOARD_MODE_START;
 					switch(mode) {
@@ -185,16 +192,21 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 							lock_indicator_target = 0;
 							lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
 						break;
+						case KEYBOARD_OUTPUT_MODE_DELAY:
+							key_step = KEY_STEP_DELAY_SET;
+							skip_postprocessing = 1;
 						break;
 						case KEYBOARD_OUTPUT_MODE_END:
 						default:
 							while(1); // Should never reach here!
 						break;
 					}
-					lock_indicator_original = keyboard_locks_indicator;
-					usb_handle_user_in_request_toggle_locks(usb_response, keyboard_locks_indicator, lock_indicator_target, lock_indicator_target_mask);
-					lock_release_wait_counter = KEYBOADRD_LOCK_CHANGE_TIMEOUT; // Timeout for waiting for the target lock state
-					key_step = KEY_STEP_TOGGLE_LOCKS_WAIT;
+					if(!skip_postprocessing) {
+						lock_indicator_original = keyboard_locks_indicator;
+						usb_handle_user_in_request_toggle_locks(usb_response, keyboard_locks_indicator, lock_indicator_target, lock_indicator_target_mask);
+						lock_release_wait_counter = KEYBOADRD_LOCK_CHANGE_TIMEOUT; // Timeout for waiting for the target lock state
+						key_step = KEY_STEP_TOGGLE_LOCKS_WAIT;
+					}
 					buffer_read_next_index = 1;
 				}
 			}
@@ -260,7 +272,6 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 								case KEYBOARD_OUTPUT_MODE_MACOS:
 									key_step = KEY_STEP_RELEASE_MODIFIER_KEYS_2;
 								break;
-								break;
 								case KEYBOARD_OUTPUT_MODE_END:
 								default:
 									while(1); // Should never reach here
@@ -307,6 +318,17 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 				memset(usb_response, 0, sizeof(usb_response));
 				if(!(--lock_release_wait_counter) || (keyboard_locks_indicator & lock_indicator_target_mask) == lock_indicator_target) {
 					key_step = KEY_STEP_WAIT_COMMAND;
+				}
+			break;
+			case KEY_STEP_DELAY_SET:
+				key_step_delay_counter = keyboard_out_buffer[keyboard_out_buffer_read_index];
+				key_step = KEY_STEP_DELAY_WAIT;
+				buffer_read_next_index = 1;
+			break;
+			case KEY_STEP_DELAY_WAIT:
+				if(!(key_step_delay_counter--)) {
+					key_step = KEY_STEP_WAIT_COMMAND;
+					buffer_read_next_index = 1;
 				}
 			break;
 		}
@@ -370,19 +392,22 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 		mode = KEYBOARD_OUTPUT_MODE_LATIN;
 	}
 
-	if(codepoint <= 0x7F || (codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH)) {
-		// Force latin mode for first 128 codepoints (ASCII) and for codepage 1 (ASCII string)
-		mode = KEYBOARD_OUTPUT_MODE_LATIN;
-	} else if (codepoint >= LOOKUP_CODEPAGE_2_START && codepoint < LOOKUP_CODEPAGE_2_START+LOOKUP_CODEPAGE_2_LENGTH) {
-		// For codepage 2, type out each of the unicode codepoint inside the array one-by-one
-		uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_2_START;
-		const uint32_t *str = lookup_get_unicode_string(2, charcter_id);
-		while(*str) {
-			keyboard_write_codepoint(mode, *str);
-			str++;
+	if(mode < KEYBOARD_OUTPUT_MODE_END) {
+		if(codepoint <= 0x7F || (codepoint >= LOOKUP_CODEPAGE_1_START && codepoint < LOOKUP_CODEPAGE_1_START+LOOKUP_CODEPAGE_1_LENGTH)) {
+			// Force latin mode for first 128 codepoints (ASCII) and for codepage 1 (ASCII string)
+			mode = KEYBOARD_OUTPUT_MODE_LATIN;
+		} else if (codepoint >= LOOKUP_CODEPAGE_2_START && codepoint < LOOKUP_CODEPAGE_2_START+LOOKUP_CODEPAGE_2_LENGTH) {
+			// For codepage 2, type out each of the unicode codepoint inside the array one-by-one
+			uint32_t charcter_id = codepoint-LOOKUP_CODEPAGE_2_START;
+			const uint32_t *str = lookup_get_unicode_string(2, charcter_id);
+			while(*str) {
+				keyboard_write_codepoint(mode, *str);
+				str++;
+			}
+			return;
 		}
-		return;
 	}
+
 	// Send start of packet with mode information
 	keyboard_push_to_out_buffer(KEYBOARD_MODE_START+mode);
 
@@ -441,7 +466,11 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			}
 			keyboard_push_hex_to_out_buffer(utf16_codepoint);
 		break;
+		case KEYBOARD_OUTPUT_MODE_DELAY:
+			keyboard_push_to_out_buffer(codepoint);
+		break;
 		case KEYBOARD_OUTPUT_MODE_END:
+		case KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE:
 			while(1); // Should never happen!
 		break;
 	}

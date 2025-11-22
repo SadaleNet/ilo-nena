@@ -33,8 +33,15 @@ enum keyboard_output_mode {
 	KEYBOARD_OUTPUT_MODE_MACOS,
 	// Upon detection in keyboard_out_buffer, perform teardown action. Not an actual usable output mode by user
 	KEYBOARD_OUTPUT_MODE_END,
-	 // Special mode that can be passed into keyboard_write_codepoint for added trailing space in LATIN mode.
-	KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE=KEYBOARD_OUTPUT_MODE_END,
+
+	// Special modes that can be passed into keyboard_write_codepoint, but inaccessible via the config menu:
+
+	// For adding trailing space in LATIN mode, not passed into keyboard_out_buffer
+	KEYBOARD_OUTPUT_MODE_LATIN_WITH_TRAILING_SPACE,
+	// For making a delay, passed into keyboard_out_buffer
+	// There's a bug on linux ibus that, after sending out a glyph and pressing enter immediately,
+	// the glyph might be double-entered. It happens more often with low-end computers.
+	KEYBOARD_OUTPUT_MODE_DELAY,
 };
 
 void keyboard_init(void);

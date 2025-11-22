@@ -37,7 +37,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define FIRMWARE_REVISION (0)
+#define FIRMWARE_REVISION (120)
 
 // The kind of screen being shown by the device
 static enum {
@@ -294,6 +294,13 @@ int main() {
 										}
 										if(key_id == ILONENA_KEY_PANA) {
 											// Send a trailing enter if the enter key had been pressed
+											if(ilonena_config.output_mode == KEYBOARD_OUTPUT_MODE_LINUX) {
+												// For linux, there's a bug in ibus that if we type out the enter immediately,
+												// sometimes the glyph would be typed twice.
+												// It happens more often when the CPU is straved or on low-end computer.
+												// This delay (slightly longer than 3*30ms) is a workaround of the ibus bug.
+												keyboard_write_codepoint(KEYBOARD_OUTPUT_MODE_DELAY, 30);
+											}
 											keyboard_write_codepoint(ilonena_config.output_mode, '\n');
 										}
 										// The input buffer is sent to the computer. Time to clear it and update display.
