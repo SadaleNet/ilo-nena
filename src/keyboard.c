@@ -255,8 +255,8 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			break;
 			case KEY_STEP_SEND_KEYS:
 			{
-				uint8_t key_id = keyboard_out_buffer[keyboard_out_buffer_read_index];
 				if(keyboard_out_buffer_read_index != keyboard_out_buffer_write_index) {
+					uint8_t key_id = keyboard_out_buffer[keyboard_out_buffer_read_index];
 					if(key_id >= KEYBOARD_MODE_START) {
 						// Detect end of input sequence, release keys and go to the next step
 						if((key_id-KEYBOARD_MODE_START) == KEYBOARD_OUTPUT_MODE_END) {
@@ -328,7 +328,7 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 			case KEY_STEP_DELAY_WAIT:
 				if(!(key_step_delay_counter--)) {
 					key_step = KEY_STEP_WAIT_COMMAND;
-					buffer_read_next_index = 1;
+					buffer_read_next_index = 1; // Gets rid of the KEYBOARD_OUTPUT_MODE_END
 				}
 			break;
 		}
