@@ -62,7 +62,7 @@ full_bom_batch_5.csv  # lipu ni li pana e sona ni: jan li wile pali e ilo nena l
 
 ## o esun e ilo nena!
 
-tenpo ni la sina ken ala esun e ona. o awen lili! mi wile pali e esun Sate. ni la sina ken esun e ona.
+sina ken esun e ona lon [esun Sate](https://esun.sadale.net/).
 
 mi jo e mani namako la mi wile pana e ilo nena tawa jan pi mani ala! :)
 
