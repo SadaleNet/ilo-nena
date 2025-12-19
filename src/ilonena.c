@@ -37,7 +37,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define FIRMWARE_REVISION (1)
+#define FIRMWARE_REVISION (120)
 
 // The kind of screen being shown by the device
 static enum {
