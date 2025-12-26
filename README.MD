@@ -2,7 +2,8 @@
 
 ![sitelen](./docs-assets/sitelen_suli.gif)
 
-[https://ilonena.sadale.net/](https://ilonena.sadale.net/)
+* lipu: [https://ilonena.sadale.net/](https://ilonena.sadale.net/)
+* sitelen tawa lon ilo Jutu "Youtube": [https://www.youtube.com/watch?v=uy7cPwKw794](https://www.youtube.com/watch?v=uy7cPwKw794)
 
 # ilo nena - ilo pi nasin sitelen Wakalito
 
