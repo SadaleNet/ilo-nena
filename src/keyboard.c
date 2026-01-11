@@ -188,9 +188,9 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 						case KEYBOARD_OUTPUT_MODE_LINUX:
 						case KEYBOARD_OUTPUT_MODE_MACOS:
 						case KEYBOARD_OUTPUT_MODE_WINDOWS:
-							// Need to ensure Capslock is inactive
-							lock_indicator_target = 0;
-							lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
+							// Need to ensure Capslock is inactive and Numlock is active
+							lock_indicator_target = KEYBOARD_LED_NUMLOCK;
+							lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK|KEYBOARD_LED_NUMLOCK;
 						break;
 						case KEYBOARD_OUTPUT_MODE_DELAY:
 							key_step = KEY_STEP_DELAY_SET;
@@ -363,7 +363,7 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 			continue; // Do not type out leading zeros
 		}
 		if(digit < 10) {
-			keyboard_push_to_out_buffer('0'+digit);
+			keyboard_push_to_out_buffer(0x10+digit);
 		} else {
 			keyboard_push_to_out_buffer('a'+digit-10);
 		}
