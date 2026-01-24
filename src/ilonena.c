@@ -435,6 +435,12 @@ int main() {
 			display_refresh_required = 1;
 		}
 
+		// Clear input buffer if WEKA is held
+		if(ilonena_mode == ILONENA_MODE_INPUT && (button_held_event & (1<<(ILONENA_KEY_WEKA-1)))) {
+			clear_input_buffer();
+			display_refresh_required = 1;
+		}
+
 		// Automatically exit title screen after idling for a while
 		if(ilonena_mode == ILONENA_MODE_TITLE_SCREEN && systick_now - title_screen_timeout_start_counting_tick >= TITLE_SCREEN_TIMEOUT) {
 			ilonena_mode = ILONENA_MODE_INPUT;
