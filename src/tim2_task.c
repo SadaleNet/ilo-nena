@@ -63,3 +63,11 @@ void tim2_task_init(void) {
 	PFIC->IPRIOR[TIM2_IRQn] = 0x80;
 	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
 }
+
+void tim2_task_pause(void) {
+	PFIC->IRER[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
+}
+
+void tim2_task_resume(void) {
+	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
+}

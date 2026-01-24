@@ -25,6 +25,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "display.h"
+#include "tim2_task.h"
 #include "ch32fun.h"
 #include <stdlib.h>
 
@@ -379,10 +380,10 @@ void display_set_refresh_flag(void) {
 	asm volatile("fence ow,ow");
 
 	// Not sure if the write operation is atomic. Disabling interrupts just in case.
-	__disable_irq();
+	tim2_task_pause();
 	asm volatile ("" ::: "memory");
 	display_refresh_flag |= DISPLAY_REFRESH_FLAG_GRAPHIC;
-	__enable_irq();
+	tim2_task_resume();
 }
 
 uint8_t display_is_idle(void) {

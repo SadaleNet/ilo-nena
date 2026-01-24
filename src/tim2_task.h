@@ -25,3 +25,5 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 void tim2_task_init(void);
+void tim2_task_pause(void);
+void tim2_task_resume(void);

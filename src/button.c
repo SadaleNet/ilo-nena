@@ -24,6 +24,7 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "tim2_task.h"
 #include "ch32fun.h"
 
 // Number of debounces required for the button state recorded as pressed/released
@@ -177,19 +178,19 @@ uint32_t button_get_state(void) {
 }
 
 uint32_t button_get_pressed_event(void) {
+	tim2_task_pause();
 	asm volatile ("" ::: "memory");
-	__disable_irq();
 	uint32_t ret = button_press_event;
 	button_press_event = 0;
-	__enable_irq();
+	tim2_task_resume();
 	return ret;
 }
 
 uint32_t button_get_held_event(void) {
+	tim2_task_pause();
 	asm volatile ("" ::: "memory");
-	__disable_irq();
 	uint32_t ret = button_held_event;
 	button_held_event = 0;
-	__enable_irq();
+	tim2_task_resume();
 	return ret;
 }
