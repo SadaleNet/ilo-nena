@@ -185,12 +185,16 @@ void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad, int
 					mode = key_id-KEYBOARD_MODE_START;
 					switch(mode) {
 						case KEYBOARD_OUTPUT_MODE_LATIN:
-						case KEYBOARD_OUTPUT_MODE_LINUX:
 						case KEYBOARD_OUTPUT_MODE_MACOS:
 						case KEYBOARD_OUTPUT_MODE_WINDOWS:
 							// Need to ensure Capslock is inactive
 							lock_indicator_target = 0;
 							lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK;
+						break;
+						case KEYBOARD_OUTPUT_MODE_LINUX:
+							// Need to ensure Capslock is inactive and Numlock is active
+							lock_indicator_target = KEYBOARD_LED_NUMLOCK;
+							lock_indicator_target_mask = KEYBOARD_LED_CAPSLOCK|KEYBOARD_LED_NUMLOCK;
 						break;
 						case KEYBOARD_OUTPUT_MODE_DELAY:
 							key_step = KEY_STEP_DELAY_SET;
@@ -354,7 +358,7 @@ static void keyboard_push_to_out_buffer(uint8_t key_id) {
 }
 
 // Push a lower-case hex value to the output buffer
-static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
+static void keyboard_push_hex_to_out_buffer(uint32_t codepoint, uint8_t use_numpad) {
 	uint8_t handled_leading_zeros = 0;
 	// reverse iteration from 7 to 0 inclusive using unsigned integer
 	for(uint32_t i=8; i-->0; ) {
@@ -363,7 +367,7 @@ static void keyboard_push_hex_to_out_buffer(uint32_t codepoint) {
 			continue; // Do not type out leading zeros
 		}
 		if(digit < 10) {
-			keyboard_push_to_out_buffer('0'+digit);
+			keyboard_push_to_out_buffer((use_numpad ? 0x10 : '0')+digit);
 		} else {
 			keyboard_push_to_out_buffer('a'+digit-10);
 		}
@@ -444,12 +448,12 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 		case KEYBOARD_OUTPUT_MODE_WINDOWS:
 			// Send the codepoint as hex
 			keyboard_push_to_out_buffer('u'); // Press enter after complete entering the unicode
-			keyboard_push_hex_to_out_buffer(codepoint);
+			keyboard_push_hex_to_out_buffer(codepoint, 0);
 			keyboard_push_to_out_buffer('\n'); // Press enter after complete entering the unicode
 		break;
 		case KEYBOARD_OUTPUT_MODE_LINUX:
 			// Send the codepoint as hex
-			keyboard_push_hex_to_out_buffer(codepoint);
+			keyboard_push_hex_to_out_buffer(codepoint, 1);
 			keyboard_push_to_out_buffer(' '); // Press space after complete entering the unicode
 		break;
 		case KEYBOARD_OUTPUT_MODE_MACOS:
@@ -464,7 +468,7 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 				// Outside of UTF-16's range. Let's fill in a middle finger emoji
 				utf16_codepoint = 0xD83DDD95;
 			}
-			keyboard_push_hex_to_out_buffer(utf16_codepoint);
+			keyboard_push_hex_to_out_buffer(utf16_codepoint, 0);
 		break;
 		case KEYBOARD_OUTPUT_MODE_DELAY:
 			keyboard_push_to_out_buffer(codepoint);
