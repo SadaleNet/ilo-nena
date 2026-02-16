@@ -70,6 +70,7 @@ const static uint32_t BUTTON_ROW_BSHR_MASK_MAP[] = {
 #define BUTTON_DEDICATED_BSHR_FLAG (GPIO_BSHR_BS1|GPIO_BSHR_BS2)
 const static uint32_t BUTTON_DEDICATED_INDR_MASK_MAP[] = {GPIO_INDR_IDR1, GPIO_INDR_IDR2};
 #define BUTTON_DEDICATED_COUNT (sizeof(BUTTON_DEDICATED_INDR_MASK_MAP)/sizeof(*BUTTON_DEDICATED_INDR_MASK_MAP))
+static size_t button_scan_row = 0;
 
 uint32_t button_state = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_state()
 uint32_t button_press_event = 0; // CONCURRENCY_VARIABLE: written/read by button_loop() via TIM2 ISR, read by button_get_pressed_event()
@@ -79,6 +80,7 @@ void button_init(void) {
 	// Initialize the state variable(s)
 	button_state = 0;
 	button_press_event = 0;
+	button_scan_row = 0;
 
 	// Enable clock for GPIOA, GPIOC and GPIOD
 	RCC->APB2PCENR |= (RCC_IOPAEN | RCC_IOPCEN | RCC_IOPDEN);
@@ -86,7 +88,7 @@ void button_init(void) {
 	// Configure row as output, open-drain, 2Mhz
 	BUTTON_ROW_GPIO_PORT->CFGLR = (BUTTON_ROW_GPIO_PORT->CFGLR & ~BUTTON_ROW_CFGLR_MASK) | BUTTON_ROW_CFGLR_FLAG;
 	// Write to the row for the first scan
-	BUTTON_ROW_GPIO_PORT->BSHR = BUTTON_ROW_BSHR_MASK_MAP[button_state];
+	BUTTON_ROW_GPIO_PORT->BSHR = BUTTON_ROW_BSHR_MASK_MAP[button_scan_row];
 
 	// Configure column as input, pull-up
 	BUTTON_COLUMN_GPIO_PORT->CFGLR = (BUTTON_COLUMN_GPIO_PORT->CFGLR & ~BUTTON_COLUMN_CFGLR_MASK) | BUTTON_COLUMN_CFGLR_FLAG;
@@ -115,7 +117,6 @@ static uint32_t button_handle_debounce(uint8_t reading, uint32_t state, int8_t d
 }
 
 void button_loop(void) {
-	static size_t button_scan_row = 0;
 	// positive is pressed count, negative is released count
 	static int8_t button_debounce[BUTTON_ROW_COUNT*BUTTON_COLUMN_COUNT+BUTTON_DEDICATED_COUNT] = {0};
 
