@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "ilo nena")
-		(date "2025-10-18")
-		(rev "rev1")
+		(date "2026-02-17")
+		(rev "rev2")
 		(company "jan Sate (Sadale.net)")
 	)
 	(lib_symbols
@@ -1165,7 +1165,157 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "MCU_WCH_CH32V0:CH32V003FxUx"
+		(symbol "Diode:1N5819WS"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "1N5819WS"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Diode_SMD:D_SOD-323"
+				(at 0 -4.445 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "diode Schottky"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "D*SOD?323*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "1N5819WS_0_1"
+				(polyline
+					(pts
+						(xy -1.905 0.635) (xy -1.905 1.27) (xy -1.27 1.27) (xy -1.27 -1.27) (xy -0.635 -1.27) (xy -0.635 -0.635)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "1N5819WS_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "MCU_WCH_RiscV:CH32V003FxUx"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -2403,7 +2553,7 @@
 	)
 	(rectangle
 		(start 144.78 82.55)
-		(end 254 138.43)
+		(end 275.59 138.43)
 		(stroke
 			(width 0)
 			(type dash)
@@ -2470,6 +2620,17 @@
 			)
 		)
 		(uuid "0b09770a-64c7-4034-8f50-6b5b0f34cab1")
+	)
+	(text "Column: open-drain output\nRow: input with pull-up\nDiode: The current flows from pull-up to open-drain\n       Therefore it points against the column\nRemarks: Old PCB revision had no diode\n       Make sure new firmware would still support that"
+		(exclude_from_sim no)
+		(at 163.576 89.662 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0bfb06a2-044e-41e3-94c4-b3de1009c46b")
 	)
 	(text "USB PORT"
 		(exclude_from_sim no)
@@ -2594,7 +2755,7 @@
 	)
 	(text "Naming column K0..2 instead of C0..2 to avoid confusion with MCU PC0..2"
 		(exclude_from_sim no)
-		(at 147.574 137.16 0)
+		(at 147.066 136.398 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2604,43 +2765,55 @@
 		(uuid "f695d0d2-b12f-43cd-983d-e9df3767b375")
 	)
 	(junction
-		(at 154.94 110.49)
+		(at 191.77 119.38)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "18bbedcc-e6f0-4c95-8a15-f053101cd893")
+	)
+	(junction
+		(at 214.63 121.92)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "197abdf0-72d2-4fb4-b1a8-4225c92b2469")
+	)
+	(junction
+		(at 153.67 110.49)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "1b89d103-6984-4324-8ede-51588e7e45b0")
 	)
 	(junction
-		(at 228.6 109.22)
+		(at 212.09 119.38)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "31f0c966-e06e-4b4c-a23e-3884045d59a3")
+		(uuid "1d0db46c-ac0c-4e0d-b13d-261bc0e8800d")
 	)
 	(junction
-		(at 215.9 120.65)
+		(at 212.09 107.95)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "37bcc92c-b765-488f-8c78-d65ce7ed6817")
+		(uuid "25af69d3-163c-47c4-8097-d179ba92f677")
 	)
 	(junction
-		(at 180.34 133.35)
+		(at 194.31 133.35)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "394c3cfd-39a2-460d-902c-548cb3cab241")
 	)
 	(junction
-		(at 167.64 133.35)
+		(at 173.99 133.35)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "3cfc5a5c-307e-4e8b-b12d-61baa9f7be12")
 	)
 	(junction
-		(at 205.74 110.49)
+		(at 234.95 110.49)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "4b30446e-26c1-462c-9036-464f5fa2346a")
 	)
 	(junction
-		(at 154.94 121.92)
+		(at 153.67 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "4c5c0b9d-ae90-4f66-9911-f48b159b2921")
@@ -2652,37 +2825,31 @@
 		(uuid "4fa516a6-e120-4990-b40d-21422947297b")
 	)
 	(junction
-		(at 203.2 109.22)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "55ff84c8-4fff-4443-97a8-9a4bc887fae3")
-	)
-	(junction
-		(at 193.04 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5ef0f262-01a4-44aa-a088-0330e453328f")
-	)
-	(junction
 		(at 107.95 91.44)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "662f2519-7f29-4244-bbfc-46f1803c9441")
 	)
 	(junction
-		(at 167.64 121.92)
+		(at 214.63 110.49)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6e236402-5d60-4505-bf35-a2e56cc5393f")
+	)
+	(junction
+		(at 173.99 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6f08adb1-6f73-470f-9a7b-b65c3d29f1ca")
 	)
 	(junction
-		(at 165.1 109.22)
+		(at 191.77 107.95)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "81f5deff-e8db-481d-bd52-e1c942d73289")
+		(uuid "6feab8af-8ce9-4ad8-aa07-4e35ad601835")
 	)
 	(junction
-		(at 180.34 110.49)
+		(at 194.31 110.49)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "82006fbf-b165-4b85-9b61-a8ef1696fbaf")
@@ -2694,52 +2861,46 @@
 		(uuid "821bb54c-2496-4904-9c51-133f430f7322")
 	)
 	(junction
-		(at 190.5 120.65)
+		(at 232.41 107.95)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "82bf989e-860f-4752-a57f-34e55cb72abd")
+		(uuid "8462f248-d79f-4f46-9ffb-0feda4a109ee")
 	)
 	(junction
-		(at 177.8 120.65)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "82c420b8-282d-4112-9761-d64b5547ab07")
-	)
-	(junction
-		(at 154.94 133.35)
+		(at 153.67 133.35)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "85e37e6b-030f-40c5-80d5-e5541982597d")
 	)
 	(junction
-		(at 228.6 120.65)
+		(at 273.05 107.95)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "8747723d-8256-4dcb-9ee0-134b75955261")
+		(uuid "88d1a446-dac3-4082-bfc3-b5bd0ab2784d")
 	)
 	(junction
-		(at 205.74 133.35)
+		(at 214.63 133.35)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "8af445a6-55dd-4efd-b98d-e2ad6aeaea45")
+	)
+	(junction
+		(at 234.95 133.35)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "8c2def8e-9395-4039-9515-1dce45aac98b")
+	)
+	(junction
+		(at 273.05 119.38)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "8e20a6a7-6a7c-43cd-9a55-2b7a3ae3ba0a")
 	)
 	(junction
 		(at 154.94 72.39)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "90acb69c-a37a-46ed-80fd-2679c8d9bae5")
-	)
-	(junction
-		(at 193.04 110.49)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "90e866a0-c8ce-45e4-8b54-ca7581bd9bdf")
-	)
-	(junction
-		(at 177.8 109.22)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "924c9e18-1640-4d56-ae32-6ae10991b346")
 	)
 	(junction
 		(at 120.65 66.04)
@@ -2754,46 +2915,28 @@
 		(uuid "9e94a2be-aa4a-492d-9ff3-ca8ad37adcbe")
 	)
 	(junction
-		(at 167.64 110.49)
+		(at 173.99 110.49)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9f7205e9-7b66-401d-a1ce-b2119979379e")
 	)
 	(junction
-		(at 205.74 121.92)
+		(at 234.95 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a307f32b-d9a8-48c4-81a2-a19081611268")
 	)
 	(junction
-		(at 215.9 109.22)
+		(at 232.41 119.38)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "a3e4b127-cc2f-4a9a-90c0-fde5bff8121f")
-	)
-	(junction
-		(at 193.04 121.92)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b36103df-66d0-4efe-931d-b59fe33318b0")
-	)
-	(junction
-		(at 203.2 120.65)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b67ab8cb-c5fd-4a2a-b153-47c2b7994b1e")
+		(uuid "ad49dd03-e831-466a-8232-7511e9b6047b")
 	)
 	(junction
 		(at 88.9 74.93)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d6b6c5d0-82c7-4020-8f5b-2f2a81cb7249")
-	)
-	(junction
-		(at 190.5 109.22)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "db58889c-f721-4945-9bbc-99cd05711ccf")
 	)
 	(junction
 		(at 55.88 66.04)
@@ -2808,16 +2951,16 @@
 		(uuid "e527c7a4-db96-45fe-a812-67bce0ea1b67")
 	)
 	(junction
-		(at 165.1 120.65)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "e93d4a1f-dc5b-43ab-a991-419e3706bcaa")
-	)
-	(junction
-		(at 180.34 121.92)
+		(at 194.31 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "eb398c3e-7de5-4c50-8f13-741308ef65fb")
+	)
+	(junction
+		(at 252.73 119.38)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ec1e6fce-1357-4332-8b6e-bdb485c8a76f")
 	)
 	(junction
 		(at 66.04 58.42)
@@ -2826,10 +2969,28 @@
 		(uuid "ed8c21a8-d106-46b8-840c-97f7f40effa8")
 	)
 	(junction
+		(at 171.45 107.95)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f14b8550-eb9d-4fcd-a539-c8a06526cdde")
+	)
+	(junction
+		(at 252.73 107.95)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f16687dd-076e-4183-a64d-b8e7af03f237")
+	)
+	(junction
 		(at 154.94 64.77)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f67900f0-4c8a-42b9-88c6-132ac4130c7e")
+	)
+	(junction
+		(at 171.45 119.38)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ffbc9526-b44d-4b39-a3f8-627634644459")
 	)
 	(no_connect
 		(at 96.52 68.58)
@@ -2844,6 +3005,16 @@
 			(type default)
 		)
 		(uuid "0447963b-b183-45e0-88e0-de862908b22b")
+	)
+	(wire
+		(pts
+			(xy 212.09 97.79) (xy 212.09 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "04f28d9f-153f-4906-bfcf-980d0265b693")
 	)
 	(wire
 		(pts
@@ -2867,7 +3038,17 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 133.35) (xy 167.64 133.35)
+			(xy 232.41 119.38) (xy 232.41 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0efc03cb-0b55-408d-b511-cea901b215c6")
+	)
+	(wire
+		(pts
+			(xy 153.67 133.35) (xy 173.99 133.35)
 		)
 		(stroke
 			(width 0)
@@ -2877,7 +3058,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 121.92) (xy 167.64 121.92)
+			(xy 153.67 121.92) (xy 173.99 121.92)
 		)
 		(stroke
 			(width 0)
@@ -2897,17 +3078,7 @@
 	)
 	(wire
 		(pts
-			(xy 165.1 97.79) (xy 165.1 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1a3aa8f6-f8fc-4771-be1d-d64c86d17503")
-	)
-	(wire
-		(pts
-			(xy 193.04 121.92) (xy 193.04 120.65)
+			(xy 214.63 121.92) (xy 214.63 119.38)
 		)
 		(stroke
 			(width 0)
@@ -2927,7 +3098,7 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 133.35) (xy 180.34 132.08)
+			(xy 194.31 133.35) (xy 194.31 130.81)
 		)
 		(stroke
 			(width 0)
@@ -2937,13 +3108,23 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 133.35) (xy 205.74 132.08)
+			(xy 234.95 133.35) (xy 234.95 130.81)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "1c6e9c32-3098-49c6-b067-6fc1719f4a1c")
+	)
+	(wire
+		(pts
+			(xy 171.45 119.38) (xy 171.45 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "23ba5720-164a-4783-88bc-c5ab39b9f543")
 	)
 	(wire
 		(pts
@@ -2967,47 +3148,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 63.5) (xy 96.52 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "25aaa8ca-103c-4582-9ac3-48c6ce3dd339")
-	)
-	(wire
-		(pts
-			(xy 165.1 120.65) (xy 165.1 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "27383e02-5b3b-48fd-8b2a-d6ddd18f8c9e")
-	)
-	(wire
-		(pts
-			(xy 203.2 120.65) (xy 203.2 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "294499ad-ec01-4a69-b5ec-9b87102b6a17")
-	)
-	(wire
-		(pts
-			(xy 215.9 97.79) (xy 215.9 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2de348d5-446f-48d0-8b27-fbb92a6313d8")
-	)
-	(wire
-		(pts
-			(xy 193.04 110.49) (xy 193.04 109.22)
+			(xy 214.63 110.49) (xy 214.63 107.95)
 		)
 		(stroke
 			(width 0)
@@ -3017,7 +3158,7 @@
 	)
 	(wire
 		(pts
-			(xy 213.36 97.79) (xy 215.9 97.79)
+			(xy 250.19 97.79) (xy 252.73 97.79)
 		)
 		(stroke
 			(width 0)
@@ -3027,7 +3168,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 110.49) (xy 152.4 110.49)
+			(xy 153.67 110.49) (xy 151.13 110.49)
 		)
 		(stroke
 			(width 0)
@@ -3037,33 +3178,43 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 109.22) (xy 203.2 120.65)
+			(xy 214.63 133.35) (xy 234.95 133.35)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "37771660-aa9d-4303-ae02-e99e8301966c")
+		(uuid "33462135-6f3c-411f-860b-9d80e100a26b")
 	)
 	(wire
 		(pts
-			(xy 154.94 109.22) (xy 154.94 110.49)
+			(xy 191.77 97.79) (xy 191.77 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "35dd3b09-ca1c-4563-87a3-8da3b4def07a")
+	)
+	(wire
+		(pts
+			(xy 273.05 107.95) (xy 273.05 119.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3b4092dd-e8d7-49f7-8921-453d30464446")
+	)
+	(wire
+		(pts
+			(xy 153.67 107.95) (xy 153.67 110.49)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "3e865882-c761-40b4-b340-97c74502dfd9")
-	)
-	(wire
-		(pts
-			(xy 215.9 109.22) (xy 215.9 120.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3fc968d8-0ffc-453e-99e8-abc2c37975ee")
 	)
 	(wire
 		(pts
@@ -3077,7 +3228,7 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 121.92) (xy 193.04 121.92)
+			(xy 194.31 121.92) (xy 214.63 121.92)
 		)
 		(stroke
 			(width 0)
@@ -3107,7 +3258,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 121.92) (xy 218.44 121.92)
+			(xy 234.95 121.92) (xy 255.27 121.92)
 		)
 		(stroke
 			(width 0)
@@ -3117,7 +3268,7 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 133.35) (xy 218.44 132.08)
+			(xy 255.27 133.35) (xy 255.27 130.81)
 		)
 		(stroke
 			(width 0)
@@ -3127,7 +3278,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 133.35) (xy 152.4 133.35)
+			(xy 153.67 133.35) (xy 151.13 133.35)
 		)
 		(stroke
 			(width 0)
@@ -3157,7 +3308,7 @@
 	)
 	(wire
 		(pts
-			(xy 167.64 121.92) (xy 180.34 121.92)
+			(xy 173.99 121.92) (xy 194.31 121.92)
 		)
 		(stroke
 			(width 0)
@@ -3177,17 +3328,17 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 121.92) (xy 205.74 121.92)
+			(xy 214.63 110.49) (xy 234.95 110.49)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "51cf2640-96ee-4d4f-b9fd-aa80029689f9")
+		(uuid "54245737-9111-4735-8d03-4e2054ac5093")
 	)
 	(wire
 		(pts
-			(xy 180.34 121.92) (xy 180.34 120.65)
+			(xy 194.31 121.92) (xy 194.31 119.38)
 		)
 		(stroke
 			(width 0)
@@ -3207,13 +3358,33 @@
 	)
 	(wire
 		(pts
-			(xy 187.96 97.79) (xy 190.5 97.79)
+			(xy 209.55 97.79) (xy 212.09 97.79)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "59f18dae-f3be-4d38-96dd-fb44bdeb9d40")
+	)
+	(wire
+		(pts
+			(xy 232.41 107.95) (xy 232.41 119.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5b6fe3db-015a-48d7-a11f-8602f1fcdb95")
+	)
+	(wire
+		(pts
+			(xy 252.73 119.38) (xy 252.73 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5e2100b9-cd25-4668-b6ab-93cfa8d1c0fb")
 	)
 	(wire
 		(pts
@@ -3227,17 +3398,7 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 97.79) (xy 190.5 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "61dcf7fa-13b0-454d-97ac-8c1a3def6426")
-	)
-	(wire
-		(pts
-			(xy 226.06 97.79) (xy 228.6 97.79)
+			(xy 270.51 97.79) (xy 273.05 97.79)
 		)
 		(stroke
 			(width 0)
@@ -3257,33 +3418,13 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 133.35) (xy 193.04 132.08)
+			(xy 214.63 133.35) (xy 214.63 130.81)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "6609325f-0f51-4e2a-a628-c63007e2c070")
-	)
-	(wire
-		(pts
-			(xy 165.1 109.22) (xy 165.1 120.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6a1ab510-180b-4e40-9989-75e0e4c1f917")
-	)
-	(wire
-		(pts
-			(xy 177.8 109.22) (xy 177.8 120.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "70654196-5e71-4d2f-8b09-e61a991dcbce")
 	)
 	(wire
 		(pts
@@ -3297,16 +3438,6 @@
 	)
 	(wire
 		(pts
-			(xy 228.6 97.79) (xy 228.6 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "79a4e07b-0145-4634-83b0-19af1af85b88")
-	)
-	(wire
-		(pts
 			(xy 45.72 66.04) (xy 55.88 66.04)
 		)
 		(stroke
@@ -3317,7 +3448,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 110.49) (xy 218.44 110.49)
+			(xy 234.95 110.49) (xy 255.27 110.49)
 		)
 		(stroke
 			(width 0)
@@ -3327,23 +3458,13 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 110.49) (xy 180.34 109.22)
+			(xy 194.31 110.49) (xy 194.31 107.95)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "80c19a20-ed31-4048-8706-07b16abefa51")
-	)
-	(wire
-		(pts
-			(xy 228.6 109.22) (xy 228.6 120.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "839dceee-0aa1-4c2c-a8a4-18675c21af73")
 	)
 	(wire
 		(pts
@@ -3367,7 +3488,7 @@
 	)
 	(wire
 		(pts
-			(xy 167.64 133.35) (xy 180.34 133.35)
+			(xy 173.99 133.35) (xy 194.31 133.35)
 		)
 		(stroke
 			(width 0)
@@ -3377,7 +3498,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 121.92) (xy 152.4 121.92)
+			(xy 153.67 121.92) (xy 151.13 121.92)
 		)
 		(stroke
 			(width 0)
@@ -3387,7 +3508,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 97.79) (xy 177.8 97.79)
+			(xy 189.23 97.79) (xy 191.77 97.79)
 		)
 		(stroke
 			(width 0)
@@ -3407,7 +3528,7 @@
 	)
 	(wire
 		(pts
-			(xy 200.66 97.79) (xy 203.2 97.79)
+			(xy 229.87 97.79) (xy 232.41 97.79)
 		)
 		(stroke
 			(width 0)
@@ -3427,17 +3548,17 @@
 	)
 	(wire
 		(pts
-			(xy 228.6 120.65) (xy 228.6 132.08)
+			(xy 273.05 119.38) (xy 273.05 130.81)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "97e8ae1c-8cac-40e4-953f-d83e9ce13f52")
+		(uuid "98b90da0-0ebe-44c2-b7d3-a22d34143806")
 	)
 	(wire
 		(pts
-			(xy 167.64 110.49) (xy 167.64 109.22)
+			(xy 173.99 110.49) (xy 173.99 107.95)
 		)
 		(stroke
 			(width 0)
@@ -3477,16 +3598,6 @@
 	)
 	(wire
 		(pts
-			(xy 215.9 120.65) (xy 215.9 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9ba57401-cd62-484f-8401-82fc176eddd2")
-	)
-	(wire
-		(pts
 			(xy 154.94 64.77) (xy 167.64 64.77)
 		)
 		(stroke
@@ -3494,16 +3605,6 @@
 			(type default)
 		)
 		(uuid "9f9007f4-969c-4450-841b-8c0c66f79d35")
-	)
-	(wire
-		(pts
-			(xy 190.5 120.65) (xy 190.5 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a28f30fa-14e4-4d56-8cdd-edf5f028a722")
 	)
 	(wire
 		(pts
@@ -3527,7 +3628,17 @@
 	)
 	(wire
 		(pts
-			(xy 167.64 133.35) (xy 167.64 132.08)
+			(xy 171.45 97.79) (xy 171.45 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ae6e123b-a6a5-4874-80c6-6e9ae18ac2bb")
+	)
+	(wire
+		(pts
+			(xy 173.99 133.35) (xy 173.99 130.81)
 		)
 		(stroke
 			(width 0)
@@ -3537,23 +3648,13 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 132.08) (xy 154.94 133.35)
+			(xy 153.67 130.81) (xy 153.67 133.35)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "afd9845a-86f7-4640-bae7-ea96c89d7f64")
-	)
-	(wire
-		(pts
-			(xy 177.8 120.65) (xy 177.8 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b152626a-af4e-4f31-ad4b-80d63d319480")
 	)
 	(wire
 		(pts
@@ -3567,7 +3668,7 @@
 	)
 	(wire
 		(pts
-			(xy 162.56 97.79) (xy 165.1 97.79)
+			(xy 171.45 97.79) (xy 168.91 97.79)
 		)
 		(stroke
 			(width 0)
@@ -3584,6 +3685,16 @@
 			(type default)
 		)
 		(uuid "ba16b7d3-eb37-4752-86b3-47f24554477d")
+	)
+	(wire
+		(pts
+			(xy 99.06 63.5) (xy 96.52 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "badd81da-f09c-4ce4-bd4d-5cd75333308e")
 	)
 	(wire
 		(pts
@@ -3607,17 +3718,17 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 109.22) (xy 190.5 120.65)
+			(xy 191.77 107.95) (xy 191.77 119.38)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "c7c6678d-5d1a-4975-a7b5-7f4dffb0d027")
+		(uuid "bed1b78e-63f8-4948-bc1c-4662de6ba059")
 	)
 	(wire
 		(pts
-			(xy 205.74 121.92) (xy 205.74 120.65)
+			(xy 234.95 121.92) (xy 234.95 119.38)
 		)
 		(stroke
 			(width 0)
@@ -3627,7 +3738,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 120.65) (xy 154.94 121.92)
+			(xy 153.67 119.38) (xy 153.67 121.92)
 		)
 		(stroke
 			(width 0)
@@ -3647,7 +3758,7 @@
 	)
 	(wire
 		(pts
-			(xy 167.64 121.92) (xy 167.64 120.65)
+			(xy 173.99 121.92) (xy 173.99 119.38)
 		)
 		(stroke
 			(width 0)
@@ -3657,7 +3768,7 @@
 	)
 	(wire
 		(pts
-			(xy 167.64 110.49) (xy 180.34 110.49)
+			(xy 173.99 110.49) (xy 194.31 110.49)
 		)
 		(stroke
 			(width 0)
@@ -3667,7 +3778,17 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 110.49) (xy 193.04 110.49)
+			(xy 232.41 97.79) (xy 232.41 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d31ce25b-fafe-48e3-9cfc-be63935c9d55")
+	)
+	(wire
+		(pts
+			(xy 194.31 110.49) (xy 214.63 110.49)
 		)
 		(stroke
 			(width 0)
@@ -3707,26 +3828,6 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 110.49) (xy 205.74 110.49)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d8fc058d-03d6-4cea-a46c-fe1928f75b20")
-	)
-	(wire
-		(pts
-			(xy 177.8 97.79) (xy 177.8 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d9e02ac4-a0f5-4d33-8ee4-9101fd62b9be")
-	)
-	(wire
-		(pts
 			(xy 39.37 58.42) (xy 45.72 58.42)
 		)
 		(stroke
@@ -3737,7 +3838,17 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 133.35) (xy 193.04 133.35)
+			(xy 171.45 107.95) (xy 171.45 119.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dbae1724-78d4-4984-aebd-e64a80be5fb3")
+	)
+	(wire
+		(pts
+			(xy 194.31 133.35) (xy 214.63 133.35)
 		)
 		(stroke
 			(width 0)
@@ -3747,13 +3858,53 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 133.35) (xy 205.74 133.35)
+			(xy 252.73 107.95) (xy 252.73 119.38)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "e3715d09-f741-4206-9c53-e35b853c9b0c")
+		(uuid "dc68e006-b0c0-4863-b1b9-1e073d45526f")
+	)
+	(wire
+		(pts
+			(xy 212.09 119.38) (xy 212.09 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dd46191a-90a1-450d-a1ab-0971f80286cb")
+	)
+	(wire
+		(pts
+			(xy 212.09 107.95) (xy 212.09 119.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e02a092a-a096-4b3a-b243-084a02f9f813")
+	)
+	(wire
+		(pts
+			(xy 273.05 97.79) (xy 273.05 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e163f850-69ca-4ec5-a875-626f158e9f9c")
+	)
+	(wire
+		(pts
+			(xy 214.63 121.92) (xy 234.95 121.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e33499f5-1f9a-4969-8d33-fca4b62860b0")
 	)
 	(wire
 		(pts
@@ -3767,7 +3918,7 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 121.92) (xy 218.44 120.65)
+			(xy 255.27 121.92) (xy 255.27 119.38)
 		)
 		(stroke
 			(width 0)
@@ -3777,7 +3928,7 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 110.49) (xy 218.44 109.22)
+			(xy 255.27 110.49) (xy 255.27 107.95)
 		)
 		(stroke
 			(width 0)
@@ -3787,23 +3938,33 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 133.35) (xy 218.44 133.35)
+			(xy 191.77 119.38) (xy 191.77 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "eca5cbd9-d51d-4fbb-aede-202d8bf6be42")
+	)
+	(wire
+		(pts
+			(xy 252.73 97.79) (xy 252.73 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ecdfb801-4758-4e3c-b208-661286797f8c")
+	)
+	(wire
+		(pts
+			(xy 234.95 133.35) (xy 255.27 133.35)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "ee42611e-d12f-4a9b-82ed-c69e26690be2")
-	)
-	(wire
-		(pts
-			(xy 203.2 97.79) (xy 203.2 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f29f36d9-15a4-42b2-8328-21778e4151e3")
 	)
 	(wire
 		(pts
@@ -3817,7 +3978,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 110.49) (xy 167.64 110.49)
+			(xy 153.67 110.49) (xy 173.99 110.49)
 		)
 		(stroke
 			(width 0)
@@ -3837,7 +3998,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 110.49) (xy 205.74 109.22)
+			(xy 234.95 110.49) (xy 234.95 107.95)
 		)
 		(stroke
 			(width 0)
@@ -3967,7 +4128,7 @@
 	)
 	(global_label "D+"
 		(shape bidirectional)
-		(at 99.06 63.5 0)
+		(at 106.68 63.5 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3977,7 +4138,7 @@
 		)
 		(uuid "12199617-df45-46d8-8ed6-72b480154bcf")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 105.9989 63.5 0)
+			(at 113.6189 63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4033,7 +4194,7 @@
 	)
 	(global_label "BL"
 		(shape output)
-		(at 195.58 92.71 180)
+		(at 236.22 92.71 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4043,7 +4204,7 @@
 		)
 		(uuid "38ae3cde-e728-407f-ace6-9366a015dd45")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 190.2967 92.71 0)
+			(at 230.9367 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4099,7 +4260,7 @@
 	)
 	(global_label "R1"
 		(shape output)
-		(at 175.26 97.79 180)
+		(at 189.23 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4109,7 +4270,7 @@
 		)
 		(uuid "47c13654-120f-4faf-aa90-0c86c8f87575")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 169.7953 97.79 0)
+			(at 183.7653 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4121,7 +4282,7 @@
 	)
 	(global_label "D-"
 		(shape bidirectional)
-		(at 99.06 66.04 0)
+		(at 106.68 66.04 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4131,7 +4292,7 @@
 		)
 		(uuid "560786bc-bdbb-42be-b37b-4f2c6a8d9d21")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 105.9989 66.04 0)
+			(at 113.6189 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4275,7 +4436,7 @@
 	)
 	(global_label "R2"
 		(shape output)
-		(at 187.96 97.79 180)
+		(at 209.55 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4285,7 +4446,7 @@
 		)
 		(uuid "85e34617-07d5-417c-82c9-6e613214054b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 182.4953 97.79 0)
+			(at 204.0853 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4319,7 +4480,7 @@
 	)
 	(global_label "K1"
 		(shape input)
-		(at 152.4 121.92 180)
+		(at 151.13 121.92 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4329,7 +4490,7 @@
 		)
 		(uuid "9d77e867-b31a-442c-a63e-d01b41dbed97")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 146.9353 121.92 0)
+			(at 145.6653 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4429,7 +4590,7 @@
 	)
 	(global_label "R3"
 		(shape output)
-		(at 200.66 97.79 180)
+		(at 229.87 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4439,7 +4600,7 @@
 		)
 		(uuid "b3fefa59-1ded-47c6-9c5e-e2d848fefba3")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 195.1953 97.79 0)
+			(at 224.4053 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4451,7 +4612,7 @@
 	)
 	(global_label "K0"
 		(shape input)
-		(at 152.4 133.35 180)
+		(at 151.13 133.35 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4461,7 +4622,7 @@
 		)
 		(uuid "b9163667-8682-40a3-b5f5-b86662567258")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 146.9353 133.35 0)
+			(at 145.6653 133.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4495,7 +4656,7 @@
 	)
 	(global_label "K2"
 		(shape input)
-		(at 152.4 110.49 180)
+		(at 151.13 110.49 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4505,7 +4666,7 @@
 		)
 		(uuid "badd6b5e-0396-40d1-960b-8cb8cc0ef914")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 146.9353 110.49 0)
+			(at 145.6653 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4561,7 +4722,7 @@
 	)
 	(global_label "R4"
 		(shape output)
-		(at 213.36 97.79 180)
+		(at 250.19 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4571,7 +4732,7 @@
 		)
 		(uuid "e57f668a-1a9d-4ae7-87ba-201ccf00d8f9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 207.8953 97.79 0)
+			(at 244.7253 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4583,7 +4744,7 @@
 	)
 	(global_label "R5"
 		(shape output)
-		(at 226.06 97.79 180)
+		(at 270.51 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4593,7 +4754,7 @@
 		)
 		(uuid "e87d10e7-8d23-4d2b-8701-7d734c3c15da")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 220.5953 97.79 0)
+			(at 265.0453 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4605,7 +4766,7 @@
 	)
 	(global_label "R0"
 		(shape output)
-		(at 162.56 97.79 180)
+		(at 168.91 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4615,7 +4776,7 @@
 		)
 		(uuid "e9222142-a899-41ce-aab2-511140e8fa9b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 157.0953 97.79 0)
+			(at 163.4453 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4649,7 +4810,7 @@
 	)
 	(global_label "BR"
 		(shape output)
-		(at 217.17 92.71 180)
+		(at 257.81 92.71 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4659,7 +4820,7 @@
 		)
 		(uuid "f690c704-2099-4226-b9fb-53eb45331a2c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 211.6448 92.71 0)
+			(at 252.2848 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4688,6 +4849,82 @@
 				)
 				(justify left)
 				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 167.64 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "013253ad-a411-47a8-a565-e19eb236f9e2")
+		(property "Reference" "D13"
+			(at 167.64 126.238 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 166.37 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 167.64 135.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 167.64 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 167.64 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 167.64 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "aec7a9b0-4cb7-4f85-b73c-ff9932e2e3af")
+		)
+		(pin "2"
+			(uuid "26b318ca-e3b6-4987-a544-814aa037749c")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D13")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -4769,16 +5006,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 172.72 120.65 0)
+		(at 179.07 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "0930d081-3244-46ea-9379-2fd4e9f67ada")
 		(property "Reference" "SW8"
-			(at 172.72 113.03 0)
+			(at 176.53 112.776 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4786,7 +5022,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 172.72 115.57 0)
+			(at 176.53 115.316 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4794,7 +5030,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 172.72 115.57 0)
+			(at 179.07 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4803,7 +5039,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 172.72 115.57 0)
+			(at 179.07 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4812,7 +5048,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 172.72 120.65 0)
+			(at 179.07 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4821,7 +5057,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 172.72 120.65 0)
+			(at 179.07 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5069,8 +5305,160 @@
 		)
 	)
 	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 269.24 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "223c3935-4d53-4de9-ac15-e80975e4ddd8")
+		(property "Reference" "D6"
+			(at 269.24 103.378 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 267.97 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 269.24 112.395 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 269.24 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 269.24 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 269.24 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "60e67fd0-4543-4b5a-98b7-ffa00916522a")
+		)
+		(pin "2"
+			(uuid "afae69af-8cb1-4735-9bd7-c670ba1c64c6")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 187.96 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "237dee2f-26f3-495f-b188-330c36300c22")
+		(property "Reference" "D14"
+			(at 187.96 126.238 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 186.69 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 187.96 135.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 187.96 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 187.96 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 187.96 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "73a655fd-b198-41f1-9184-2f51b916fa4b")
+		)
+		(pin "2"
+			(uuid "8eb3c80f-6739-4685-8cd3-a6ab2c3f29f4")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
-		(at 227.33 92.71 0)
+		(at 267.97 92.71 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5078,7 +5466,7 @@
 		(dnp no)
 		(uuid "25a841a0-a8ab-457d-9e05-2fa9f927722b")
 		(property "Reference" "#PWR02"
-			(at 227.33 99.06 0)
+			(at 267.97 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5087,7 +5475,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 230.632 94.742 0)
+			(at 271.272 94.742 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5095,7 +5483,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 227.33 92.71 0)
+			(at 267.97 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5104,7 +5492,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 227.33 92.71 0)
+			(at 267.97 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5113,7 +5501,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 227.33 92.71 0)
+			(at 267.97 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5128,6 +5516,82 @@
 			(project "ilonena"
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 228.6 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "29b849d5-58d6-4d02-9296-db702cc11c7a")
+		(property "Reference" "D4"
+			(at 228.6 103.378 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 227.33 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 228.6 112.395 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 228.6 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 228.6 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 228.6 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3eb3f519-94b1-4445-bf02-4a38b69459c2")
+		)
+		(pin "2"
+			(uuid "a8cc0f9a-a7a6-4786-830a-6de9e4223ae1")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D4")
 					(unit 1)
 				)
 			)
@@ -5200,17 +5664,92 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_Push")
-		(at 210.82 132.08 0)
+		(lib_id "Diode:1N5819WS")
+		(at 248.92 130.81 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
+		(uuid "2c4a6cf1-5aa8-47bd-85ab-8ef948e45357")
+		(property "Reference" "D17"
+			(at 248.92 126.238 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 247.65 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 248.92 135.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 248.92 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 248.92 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 248.92 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "87aacd35-1de5-4d41-8d23-25da9c959980")
+		)
+		(pin "2"
+			(uuid "0719ba47-d563-4e5c-aa7b-7c5ccbfc791f")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D17")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 240.03 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(uuid "2c81aa7c-0f36-4ca4-be75-2e208b42a760")
 		(property "Reference" "SW17"
-			(at 210.82 124.46 0)
+			(at 237.49 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5218,7 +5757,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 210.82 127 0)
+			(at 237.49 126.746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5226,7 +5765,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 210.82 127 0)
+			(at 240.03 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5235,7 +5774,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 210.82 127 0)
+			(at 240.03 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5244,7 +5783,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 210.82 132.08 0)
+			(at 240.03 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5253,7 +5792,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 210.82 132.08 0)
+			(at 240.03 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5339,6 +5878,15 @@
 				(hide yes)
 			)
 		)
+		(property "FT Rotation Offset" "180"
+			(at 55.88 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "72ee9082-aac5-464f-a3e0-ab2ddffddbef")
 		)
@@ -5359,16 +5907,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 160.02 132.08 0)
+		(at 158.75 130.81 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "2c9549fd-84b9-4907-ac71-3dac9b733648")
 		(property "Reference" "SW13"
-			(at 160.02 124.46 0)
+			(at 155.956 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5376,7 +5923,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 160.02 127 0)
+			(at 155.956 126.746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5384,7 +5931,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 160.02 127 0)
+			(at 158.75 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5393,7 +5940,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 160.02 127 0)
+			(at 158.75 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5402,7 +5949,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 160.02 132.08 0)
+			(at 158.75 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5411,7 +5958,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 160.02 132.08 0)
+			(at 158.75 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5436,16 +5983,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 185.42 120.65 0)
+		(at 199.39 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "2ffa2a1b-f3bd-4383-9917-07db3dca3bd2")
 		(property "Reference" "SW9"
-			(at 185.42 113.03 0)
+			(at 197.104 112.776 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5453,7 +5999,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 185.42 115.57 0)
+			(at 196.85 115.316 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5461,7 +6007,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 185.42 115.57 0)
+			(at 199.39 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5470,7 +6016,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 185.42 115.57 0)
+			(at 199.39 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5479,7 +6025,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 185.42 120.65 0)
+			(at 199.39 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5488,7 +6034,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 185.42 120.65 0)
+			(at 199.39 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5513,16 +6059,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 185.42 109.22 0)
+		(at 199.39 107.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "38f9459c-452e-45c9-8f42-6551368d0ee3")
 		(property "Reference" "SW3"
-			(at 185.42 101.6 0)
+			(at 196.85 101.346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5530,7 +6075,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 185.42 104.14 0)
+			(at 196.85 103.886 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5538,7 +6083,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 185.42 104.14 0)
+			(at 199.39 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5547,7 +6092,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 185.42 104.14 0)
+			(at 199.39 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5556,7 +6101,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 185.42 109.22 0)
+			(at 199.39 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5565,7 +6110,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 185.42 109.22 0)
+			(at 199.39 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5788,6 +6333,82 @@
 		)
 	)
 	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 228.6 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "40eff70e-4c47-40e9-ba3f-82873c6706b0")
+		(property "Reference" "D10"
+			(at 228.6 114.808 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 227.33 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 228.6 123.825 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 228.6 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 228.6 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 228.6 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "62e73c4a-8498-47c7-b5bb-650dbddc7e3d")
+		)
+		(pin "2"
+			(uuid "3e61b982-3384-449c-b08d-e95c276da7dd")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 154.94 62.23 0)
 		(unit 1)
@@ -5848,6 +6469,82 @@
 			(project "ilonena"
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "#PWR06")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 248.92 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "490e55fc-290b-46ef-9cf9-7a5dd23b32a6")
+		(property "Reference" "D5"
+			(at 248.92 103.378 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 247.65 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 248.92 112.395 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 248.92 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 248.92 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 248.92 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b412e22b-7744-4441-be9d-d57da1f325b2")
+		)
+		(pin "2"
+			(uuid "6fbd9bfd-be42-4d06-838d-b9209dae7fc1")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D5")
 					(unit 1)
 				)
 			)
@@ -5921,17 +6618,92 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_Push")
-		(at 185.42 132.08 0)
+		(lib_id "Diode:1N5819WS")
+		(at 187.96 107.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
+		(uuid "4d94fc6a-a9b1-47c9-8d05-e4180d269d00")
+		(property "Reference" "D2"
+			(at 187.96 103.378 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 186.69 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 187.96 112.395 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 187.96 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 187.96 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 187.96 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4d88c047-5875-4d11-b9e0-dae1882de3cd")
+		)
+		(pin "2"
+			(uuid "250af289-15ca-40eb-b927-cc9cbb705d96")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 199.39 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(uuid "4f48d848-8808-4a43-a954-d9f912521bde")
 		(property "Reference" "SW15"
-			(at 185.42 124.46 0)
+			(at 196.85 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5939,7 +6711,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 185.42 127 0)
+			(at 196.85 126.746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5947,7 +6719,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 185.42 127 0)
+			(at 199.39 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5956,7 +6728,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 185.42 127 0)
+			(at 199.39 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5965,7 +6737,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 185.42 132.08 0)
+			(at 199.39 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5974,7 +6746,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 185.42 132.08 0)
+			(at 199.39 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5999,16 +6771,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 172.72 109.22 0)
+		(at 179.07 107.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "4faf86b5-9ee1-437d-8315-16a23681353c")
 		(property "Reference" "SW2"
-			(at 172.72 101.6 0)
+			(at 176.53 101.346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6016,7 +6787,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 172.72 104.14 0)
+			(at 176.53 103.886 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6024,7 +6795,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 172.72 104.14 0)
+			(at 179.07 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6033,7 +6804,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 172.72 104.14 0)
+			(at 179.07 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6042,7 +6813,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 172.72 109.22 0)
+			(at 179.07 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6051,7 +6822,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 172.72 109.22 0)
+			(at 179.07 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6153,16 +6924,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 172.72 132.08 0)
+		(at 179.07 130.81 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "51b226a1-fcbe-4f12-84b0-aae5218d97e7")
 		(property "Reference" "SW14"
-			(at 172.72 124.46 0)
+			(at 176.53 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6170,7 +6940,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 172.72 127 0)
+			(at 176.53 126.746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6178,7 +6948,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 172.72 127 0)
+			(at 179.07 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6187,7 +6957,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 172.72 127 0)
+			(at 179.07 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6196,7 +6966,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 172.72 132.08 0)
+			(at 179.07 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6205,7 +6975,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 172.72 132.08 0)
+			(at 179.07 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6427,33 +7197,32 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_Push")
-		(at 210.82 109.22 0)
+		(lib_id "Device:R")
+		(at 102.87 63.5 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6dbe766f-9380-4a6f-b5f5-46d33f3f6fbb")
-		(property "Reference" "SW5"
-			(at 210.82 101.6 0)
+		(uuid "61c22f7a-ff86-4dd5-9f18-a4c0f53d6cf3")
+		(property "Reference" "R5"
+			(at 102.87 58.674 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "B3F-4055"
-			(at 210.82 104.14 0)
+		(property "Value" "33"
+			(at 102.87 61.214 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 210.82 104.14 0)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 102.87 65.278 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6462,7 +7231,159 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 210.82 104.14 0)
+			(at 102.87 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 102.87 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C21189"
+			(at 102.87 63.5 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "016ceb8b-9dd7-4f05-9122-8502ba576511")
+		)
+		(pin "1"
+			(uuid "1367eeb3-a7a5-4fd4-bd2c-459f937a0df7")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 248.92 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6256c7ad-b399-45be-ab2c-74849677e3a0")
+		(property "Reference" "D11"
+			(at 248.92 114.808 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 247.65 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 248.92 123.825 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 248.92 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 248.92 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 248.92 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "dcfb2763-1425-4939-bbb1-936e3c55c2cd")
+		)
+		(pin "2"
+			(uuid "2866e09a-a0d9-45aa-9191-97c0c497d9c4")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 240.03 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6dbe766f-9380-4a6f-b5f5-46d33f3f6fbb")
+		(property "Reference" "SW5"
+			(at 237.49 101.346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "B3F-4055"
+			(at 237.49 103.886 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
+			(at 240.03 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 240.03 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6471,7 +7392,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 210.82 109.22 0)
+			(at 240.03 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6480,7 +7401,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 210.82 109.22 0)
+			(at 240.03 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6676,16 +7597,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 210.82 120.65 0)
+		(at 240.03 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "8031ad00-1e27-4b2c-a3e2-d3261e27c2f5")
 		(property "Reference" "SW11"
-			(at 210.82 113.03 0)
+			(at 237.49 112.776 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6693,7 +7613,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 210.82 115.57 0)
+			(at 237.49 115.316 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6701,7 +7621,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 210.82 115.57 0)
+			(at 240.03 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6710,7 +7630,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 210.82 115.57 0)
+			(at 240.03 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6719,7 +7639,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 210.82 120.65 0)
+			(at 240.03 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6728,7 +7648,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 210.82 120.65 0)
+			(at 240.03 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6753,16 +7673,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 223.52 120.65 0)
+		(at 260.35 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "811154c9-8840-403d-b591-c3c9f2ff23ba")
 		(property "Reference" "SW12"
-			(at 223.52 113.03 0)
+			(at 257.81 112.776 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6770,7 +7689,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 223.52 115.57 0)
+			(at 257.81 115.316 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6778,7 +7697,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 223.52 115.57 0)
+			(at 260.35 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6787,7 +7706,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 223.52 115.57 0)
+			(at 260.35 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6796,7 +7715,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 223.52 120.65 0)
+			(at 260.35 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6805,7 +7724,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 223.52 120.65 0)
+			(at 260.35 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6830,16 +7749,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 198.12 120.65 0)
+		(at 219.71 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "824529ff-08ec-455b-901c-054de312e66d")
 		(property "Reference" "SW10"
-			(at 198.12 113.03 0)
+			(at 217.17 112.776 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6847,7 +7765,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 198.12 115.57 0)
+			(at 217.17 115.316 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6855,7 +7773,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 198.12 115.57 0)
+			(at 219.71 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6864,7 +7782,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 198.12 115.57 0)
+			(at 219.71 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6873,7 +7791,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 198.12 120.65 0)
+			(at 219.71 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6882,7 +7800,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 198.12 120.65 0)
+			(at 219.71 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6900,6 +7818,82 @@
 			(project "ilonena"
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "SW10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 167.64 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8babe87f-91d1-45de-b8b7-52f717265d50")
+		(property "Reference" "D7"
+			(at 167.64 114.808 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 166.37 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 167.64 123.825 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 167.64 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 167.64 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 167.64 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d38143bf-4b8c-421b-8b95-c15e321bce35")
+		)
+		(pin "2"
+			(uuid "3249cd32-3885-4afd-9269-f373f261c123")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D7")
 					(unit 1)
 				)
 			)
@@ -6972,16 +7966,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 198.12 132.08 0)
+		(at 219.71 130.81 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "920f9e3c-6e8f-42d9-861d-57d1accde342")
 		(property "Reference" "SW16"
-			(at 198.12 124.46 0)
+			(at 217.17 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6989,7 +7982,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 198.12 127 0)
+			(at 217.17 126.746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6997,7 +7990,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 198.12 127 0)
+			(at 219.71 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7006,7 +7999,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 198.12 127 0)
+			(at 219.71 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7015,7 +8008,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 198.12 132.08 0)
+			(at 219.71 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7024,7 +8017,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 198.12 132.08 0)
+			(at 219.71 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7049,7 +8042,7 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 222.25 92.71 0)
+		(at 262.89 92.71 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7058,7 +8051,7 @@
 		(fields_autoplaced yes)
 		(uuid "9217ee8e-8c75-4a9e-a3e8-bf6ad5d8fa0f")
 		(property "Reference" "SW20"
-			(at 222.25 85.09 0)
+			(at 262.89 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7066,7 +8059,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 222.25 87.63 0)
+			(at 262.89 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7074,7 +8067,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 222.25 87.63 0)
+			(at 262.89 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7083,7 +8076,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 222.25 87.63 0)
+			(at 262.89 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7092,7 +8085,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 222.25 92.71 0)
+			(at 262.89 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7101,7 +8094,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 222.25 92.71 0)
+			(at 262.89 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7119,6 +8112,82 @@
 			(project "ilonena"
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "SW20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 167.64 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "97c2e04e-d97d-4592-8e8b-7a57878fb77b")
+		(property "Reference" "D1"
+			(at 167.64 103.378 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 166.37 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 167.64 112.395 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 167.64 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 167.64 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 167.64 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "36674809-72d3-4124-9d9f-ca2375c07247")
+		)
+		(pin "2"
+			(uuid "a91e7935-38f1-4a5d-933d-ed7f38f87568")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D1")
 					(unit 1)
 				)
 			)
@@ -7191,7 +8260,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 205.74 92.71 0)
+		(at 246.38 92.71 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7199,7 +8268,7 @@
 		(dnp no)
 		(uuid "988ce7f4-811c-497a-91e4-82cc85de30d9")
 		(property "Reference" "#PWR01"
-			(at 205.74 99.06 0)
+			(at 246.38 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7208,7 +8277,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 209.042 94.742 0)
+			(at 249.682 94.742 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7216,7 +8285,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 205.74 92.71 0)
+			(at 246.38 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7225,7 +8294,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 205.74 92.71 0)
+			(at 246.38 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7234,7 +8303,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 205.74 92.71 0)
+			(at 246.38 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7255,7 +8324,7 @@
 		)
 	)
 	(symbol
-		(lib_id "MCU_WCH_CH32V0:CH32V003FxUx")
+		(lib_id "MCU_WCH_RiscV:CH32V003FxUx")
 		(at 107.95 109.22 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7351,9 +8420,6 @@
 		(pin "7"
 			(uuid "3697deda-d033-433f-a564-4fee3038f17b")
 		)
-		(pin "21"
-			(uuid "924a501a-fcd9-4f83-8a8c-44d44fc6a4f2")
-		)
 		(pin "2"
 			(uuid "30acf2a3-7413-4f94-b359-fa9cf76fd5ca")
 		)
@@ -7381,10 +8447,89 @@
 		(pin "1"
 			(uuid "c58ce458-eae8-4314-b153-1bc164c7bebc")
 		)
+		(pin "21"
+			(uuid "db2d833f-45ab-4354-b066-428ac9525113")
+		)
 		(instances
 			(project ""
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "U1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 208.28 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9a08e5ea-72e8-47d3-a148-b189b02465cf")
+		(property "Reference" "D15"
+			(at 208.28 126.238 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 207.01 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 208.28 135.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 208.28 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 208.28 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 208.28 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "432ac716-5782-49cf-8725-f88650bac0ea")
+		)
+		(pin "2"
+			(uuid "bafcc6d3-a49f-493f-9ca8-fc710dca0e80")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D15")
 					(unit 1)
 				)
 			)
@@ -7524,16 +8669,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 223.52 109.22 0)
+		(at 260.35 107.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "a2eab6ee-203a-4729-9b0f-cf314e2f320d")
 		(property "Reference" "SW6"
-			(at 223.52 101.6 0)
+			(at 257.81 101.346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7541,7 +8685,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 223.52 104.14 0)
+			(at 257.81 103.886 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7549,7 +8693,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 223.52 104.14 0)
+			(at 260.35 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7558,7 +8702,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 223.52 104.14 0)
+			(at 260.35 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7567,7 +8711,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 223.52 109.22 0)
+			(at 260.35 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7576,7 +8720,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 223.52 109.22 0)
+			(at 260.35 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7600,17 +8744,92 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_Push")
-		(at 160.02 109.22 0)
+		(lib_id "Diode:1N5819WS")
+		(at 208.28 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
+		(uuid "a3fc6839-e083-4860-9b26-178dbc544a61")
+		(property "Reference" "D9"
+			(at 208.28 114.808 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 207.01 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 208.28 123.825 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 208.28 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 208.28 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 208.28 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "999bdd8a-b4d3-4071-8393-6e498ab16f48")
+		)
+		(pin "2"
+			(uuid "1a042455-6c9e-4190-ba9d-e8b150894190")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 158.75 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(uuid "a659f155-16c7-4cfc-9746-d67705a48498")
 		(property "Reference" "SW1"
-			(at 160.02 101.6 0)
+			(at 156.21 101.346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7618,7 +8837,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 160.02 104.14 0)
+			(at 156.21 103.886 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7626,7 +8845,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 160.02 104.14 0)
+			(at 158.75 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7635,7 +8854,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 160.02 104.14 0)
+			(at 158.75 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7644,7 +8863,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 160.02 109.22 0)
+			(at 158.75 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7653,7 +8872,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 160.02 109.22 0)
+			(at 158.75 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7742,17 +8961,92 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_Push")
-		(at 160.02 120.65 0)
+		(lib_id "Diode:1N5819WS")
+		(at 269.24 119.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
+		(uuid "ac96be16-89db-4de4-a6fa-c2f15059d640")
+		(property "Reference" "D12"
+			(at 269.24 114.808 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 267.97 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 269.24 123.825 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 269.24 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 269.24 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 269.24 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "911762b7-b52d-4ac0-a999-44f3dac35094")
+		)
+		(pin "2"
+			(uuid "fb76179b-f6ff-470d-8de3-6d33ddc1ba88")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 158.75 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(uuid "acc7e34b-d731-43dd-9156-f7cb7d681fe5")
 		(property "Reference" "SW7"
-			(at 160.02 113.03 0)
+			(at 155.956 112.776 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7760,7 +9054,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 160.02 115.57 0)
+			(at 155.956 115.316 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7768,7 +9062,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 160.02 115.57 0)
+			(at 158.75 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7777,7 +9071,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 160.02 115.57 0)
+			(at 158.75 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7786,7 +9080,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 160.02 120.65 0)
+			(at 158.75 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7795,7 +9089,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 160.02 120.65 0)
+			(at 158.75 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7821,6 +9115,7 @@
 	(symbol
 		(lib_id "Device:R")
 		(at 102.87 73.66 90)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7828,7 +9123,7 @@
 		(dnp no)
 		(uuid "b2469eb0-c3cc-4971-89ea-d093694cf19f")
 		(property "Reference" "R1"
-			(at 102.87 68.834 90)
+			(at 102.87 75.946 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7836,7 +9131,7 @@
 			)
 		)
 		(property "Value" "1k5"
-			(at 102.87 71.374 90)
+			(at 102.87 78.232 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7844,7 +9139,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 102.87 75.438 90)
+			(at 102.87 71.882 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7896,16 +9191,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 198.12 109.22 0)
+		(at 219.71 107.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "b69c6109-59b2-4cca-bc6c-44480d00b91b")
 		(property "Reference" "SW4"
-			(at 198.12 101.6 0)
+			(at 217.17 101.346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7913,7 +9207,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 198.12 104.14 0)
+			(at 217.17 103.886 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7921,7 +9215,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 198.12 104.14 0)
+			(at 219.71 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7930,7 +9224,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 198.12 104.14 0)
+			(at 219.71 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7939,7 +9233,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 198.12 109.22 0)
+			(at 219.71 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7948,7 +9242,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 198.12 109.22 0)
+			(at 219.71 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7973,16 +9267,15 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 223.52 132.08 0)
+		(at 260.35 130.81 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "b83fc823-d79c-4d7d-a57c-911c370b4e26")
 		(property "Reference" "SW18"
-			(at 223.52 124.46 0)
+			(at 257.81 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7990,7 +9283,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 223.52 127 0)
+			(at 257.81 126.746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7998,7 +9291,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 223.52 127 0)
+			(at 260.35 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8007,7 +9300,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 223.52 127 0)
+			(at 260.35 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8016,7 +9309,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 223.52 132.08 0)
+			(at 260.35 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8025,7 +9318,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 223.52 132.08 0)
+			(at 260.35 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8124,7 +9417,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c1350867-6f25-4cd6-89eb-64ee83bc3389")
-		(property "Reference" "D1"
+		(property "Reference" "D19"
 			(at 59.944 82.042 0)
 			(effects
 				(font
@@ -8194,7 +9487,7 @@
 		(instances
 			(project ""
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
-					(reference "D1")
+					(reference "D19")
 					(unit 1)
 				)
 			)
@@ -8262,6 +9555,159 @@
 			(project "ilonena"
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "TP3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 102.87 66.04 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c915da16-eb1b-4b69-9ad0-9c2bbe440384")
+		(property "Reference" "R6"
+			(at 102.87 68.326 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "33"
+			(at 102.87 70.612 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 102.87 64.262 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 102.87 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 102.87 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C21189"
+			(at 102.87 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "5654a682-d899-4a71-a6b9-674468d9d036")
+		)
+		(pin "1"
+			(uuid "ec29abcf-54f2-4dda-81d9-b5e8c928d0e9")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "R6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 187.96 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cdcbf9be-6a4f-4733-b038-a31a4e29b556")
+		(property "Reference" "D8"
+			(at 187.96 114.808 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 186.69 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 187.96 123.825 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 187.96 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 187.96 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 187.96 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2f2a0385-ef97-438d-904b-a5299051a865")
+		)
+		(pin "2"
+			(uuid "3a916909-2f9c-4e09-95e1-7c2760c84f5c")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D8")
 					(unit 1)
 				)
 			)
@@ -8346,6 +9792,158 @@
 		)
 	)
 	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 269.24 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e0ff3f19-08c6-43ed-aa17-f5e33028c011")
+		(property "Reference" "D18"
+			(at 269.24 126.238 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 267.97 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 269.24 135.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 269.24 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 269.24 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 269.24 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "10c967af-3cfd-4c60-b383-97d6ac36d6ba")
+		)
+		(pin "2"
+			(uuid "29b2c651-9ff7-4c27-b71e-1a68b1098769")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D18")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 208.28 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e1f5a31a-856e-4f35-bc83-70de166db2a9")
+		(property "Reference" "D3"
+			(at 208.28 103.378 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 207.01 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 208.28 112.395 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 208.28 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 208.28 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 208.28 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "132ded9e-8088-434e-a9b1-c3494cb0c7e1")
+		)
+		(pin "2"
+			(uuid "8aab0404-1250-43ac-9c68-7d3de2e92fda")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 130.81 66.04 90)
 		(unit 1)
@@ -8423,7 +10021,7 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 200.66 92.71 0)
+		(at 241.3 92.71 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8432,7 +10030,7 @@
 		(fields_autoplaced yes)
 		(uuid "e4e117bb-f25b-4b80-ae8c-2a0918257ae3")
 		(property "Reference" "SW19"
-			(at 200.66 85.09 0)
+			(at 241.3 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8440,7 +10038,7 @@
 			)
 		)
 		(property "Value" "B3F-4055"
-			(at 200.66 87.63 0)
+			(at 241.3 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8448,7 +10046,7 @@
 			)
 		)
 		(property "Footprint" "Push_Button_12mm_with_Key:B3F-4055"
-			(at 200.66 87.63 0)
+			(at 241.3 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8457,7 +10055,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 200.66 87.63 0)
+			(at 241.3 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8466,7 +10064,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 200.66 92.71 0)
+			(at 241.3 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8475,7 +10073,7 @@
 			)
 		)
 		(property "LCSC" "C84931"
-			(at 200.66 92.71 0)
+			(at 241.3 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8559,6 +10157,82 @@
 			(project "ilonena"
 				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
 					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:1N5819WS")
+		(at 228.6 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e6e6cf1c-6d01-45d5-b4a0-c6b784cbe316")
+		(property "Reference" "D16"
+			(at 228.6 126.238 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819WS"
+			(at 227.33 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-323"
+			(at 228.6 135.255 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf"
+			(at 228.6 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "40V 600mV@1A 1A SOD-323 Schottky Barrier Diodes, SOD-323"
+			(at 228.6 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C191023"
+			(at 228.6 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "02df9dd3-3276-4cbb-a0f0-948fc07fc21f")
+		)
+		(pin "2"
+			(uuid "a1a217d6-8b5e-4ce9-9699-92cc8ad27ad1")
+		)
+		(instances
+			(project "ilonena"
+				(path "/855e1106-b6a3-4048-9c22-8d73787b4ad4"
+					(reference "D16")
 					(unit 1)
 				)
 			)
