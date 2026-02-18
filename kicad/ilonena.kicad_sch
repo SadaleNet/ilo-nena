@@ -4877,7 +4877,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 167.64 135.255 0)
 			(effects
 				(font
@@ -5329,7 +5329,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 269.24 112.395 0)
 			(effects
 				(font
@@ -5405,7 +5405,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 187.96 135.255 0)
 			(effects
 				(font
@@ -5546,7 +5546,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 228.6 112.395 0)
 			(effects
 				(font
@@ -5688,7 +5688,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 248.92 135.255 0)
 			(effects
 				(font
@@ -6357,7 +6357,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 228.6 123.825 0)
 			(effects
 				(font
@@ -6499,7 +6499,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 248.92 112.395 0)
 			(effects
 				(font
@@ -6642,7 +6642,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 187.96 112.395 0)
 			(effects
 				(font
@@ -7297,7 +7297,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 248.92 123.825 0)
 			(effects
 				(font
@@ -7848,7 +7848,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 167.64 123.825 0)
 			(effects
 				(font
@@ -8142,7 +8142,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 167.64 112.395 0)
 			(effects
 				(font
@@ -8484,7 +8484,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 208.28 135.255 0)
 			(effects
 				(font
@@ -8768,7 +8768,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 208.28 123.825 0)
 			(effects
 				(font
@@ -8985,7 +8985,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 269.24 123.825 0)
 			(effects
 				(font
@@ -9662,7 +9662,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 187.96 123.825 0)
 			(effects
 				(font
@@ -9816,7 +9816,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 269.24 135.255 0)
 			(effects
 				(font
@@ -9892,7 +9892,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 208.28 112.395 0)
 			(effects
 				(font
@@ -10187,7 +10187,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SOD-323"
+		(property "Footprint" "D_SOD-323_LargePads:D_SOD-323_LargePads"
 			(at 228.6 135.255 0)
 			(effects
 				(font

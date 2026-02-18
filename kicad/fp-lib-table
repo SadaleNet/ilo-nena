@@ -4,4 +4,5 @@
   (lib (name "logo")(type "KiCad")(uri "${KIPRJMOD}/footprints/logo.pretty")(options "")(descr ""))
   (lib (name "Push_Button_12mm_with_Key")(type "KiCad")(uri "${KIPRJMOD}/footprints/Push_Button_12mm_with_Key.pretty")(options "")(descr ""))
   (lib (name "Pin_Header")(type "KiCad")(uri "${KIPRJMOD}/footprints/Pin_Header.pretty")(options "")(descr ""))
+  (lib (name "D_SOD-323_LargePads")(type "KiCad")(uri "${KIPRJMOD}/footprints/D_SOD-323_LargePads")(options "")(descr ""))
 )

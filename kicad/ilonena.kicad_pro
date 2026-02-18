@@ -60,31 +60,31 @@
       ],
       "drc_exclusions": [
         [
-          "silk_over_copper|34387000|72599099|edb95b2a-44ba-46b9-b6e5-74cf2ff3799e|00000000-0000-0000-0000-000000000000",
+          "silk_over_copper|34387000|72599099|4d614357-6efd-4c11-a321-d8ccdc5f9022|00000000-0000-0000-0000-000000000000",
           ""
         ],
         [
-          "silk_overlap|26575000|63430000|83408e6f-b8bb-4172-b9df-5665a2a6ba8b|20d6789e-67f8-4ddd-bf70-5dd70aad3200",
+          "silk_overlap|26575000|63430000|5834a967-e35a-4360-a6ce-ed4e72b540bc|20d6789e-67f8-4ddd-bf70-5dd70aad3200",
           ""
         ],
         [
-          "silk_overlap|26575000|65970000|445d817d-6137-4d32-9edd-1bfd0bca9a4b|8bd65fd2-eea3-4c79-86de-7fdb3e2abe88",
+          "silk_overlap|26575000|65970000|34bbbf41-79c1-4094-a37e-a367d1153d6a|8bd65fd2-eea3-4c79-86de-7fdb3e2abe88",
           ""
         ],
         [
-          "silk_overlap|26575000|68510000|155845eb-f37f-446d-b954-9b95e313cdbc|09b77e00-192a-4ddf-86eb-2a4b286fb0c2",
+          "silk_overlap|26575000|68510000|77cfdfcd-f8e6-4043-834e-36b50285b056|09b77e00-192a-4ddf-86eb-2a4b286fb0c2",
           ""
         ],
         [
-          "silk_overlap|26575000|71050000|c85106d2-387d-4afb-b0c2-1a12e65b9db5|2cbc01b6-9059-4f48-a306-d9312beabcf8",
+          "silk_overlap|26575000|71050000|9e7b67b6-fca7-478e-8949-ddd916cc460c|2cbc01b6-9059-4f48-a306-d9312beabcf8",
           ""
         ],
         [
-          "silk_overlap|34390000|72215580|0800c818-dce7-4112-ac53-05892190faa6|edb95b2a-44ba-46b9-b6e5-74cf2ff3799e",
+          "silk_overlap|34390000|72215580|4d614357-6efd-4c11-a321-d8ccdc5f9022|f70a181c-f88a-45e2-8e8c-a0f3327c39ca",
           ""
         ],
         [
-          "silk_overlap|34495000|72615000|edb95b2a-44ba-46b9-b6e5-74cf2ff3799e|452d56d4-9734-462d-b7c1-48fd6c71ff20",
+          "silk_overlap|34495000|72615000|4d614357-6efd-4c11-a321-d8ccdc5f9022|452d56d4-9734-462d-b7c1-48fd6c71ff20",
           ""
         ]
       ],
@@ -627,6 +627,12 @@
           "group_by": false,
           "label": "#",
           "name": "${ITEM_NUMBER}",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "FT Rotation Offset",
+          "name": "FT Rotation Offset",
           "show": false
         }
       ],
