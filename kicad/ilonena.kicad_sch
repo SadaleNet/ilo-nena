@@ -7485,6 +7485,15 @@
 				(hide yes)
 			)
 		)
+		(property "FT Position Offset" "0.0,-0.4445"
+			(at 88.9 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "4"
 			(uuid "2ef70726-f563-4a15-8a27-6ef993c67940")
 		)

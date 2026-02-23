@@ -7935,6 +7935,19 @@
 				)
 			)
 		)
+		(property "FT Position Offset" "0.0,-0.4445"
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "6d7d3cd1-9ac1-4b52-9c90-b5ef3c91d7e6")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "USB*Micro*B*")
 		(path "/732d77ea-a7cb-4bef-9b41-86285aa96941")
 		(sheetname "/")
