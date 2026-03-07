@@ -28,7 +28,7 @@
 #include "display.h"
 #include "ch32fun.h"
 
-#define TIM2_INTERVAL_US (500) // The approximate interval between each run of the task. Actual interval would be slightly longer than that.
+#define TIM2_INTERVAL_US (1000) // The approximate interval between each run of the task. Actual interval would be slightly longer than that.
 
 void INTERRUPT_DECORATOR TIM2_IRQHandler(void) {
 	// For performance, we just set the interrupt flags to zero. We're not gonna use TIM2 interrupt flags for anything else anyway
@@ -61,5 +61,13 @@ void tim2_task_init(void) {
 
 	// PFIC: For TIM2_IRQHandler, enable preemption for the interrupt. Also enable the interrupt.
 	PFIC->IPRIOR[TIM2_IRQn] = 0x80;
+	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
+}
+
+void tim2_task_pause(void) {
+	PFIC->IRER[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
+}
+
+void tim2_task_resume(void) {
 	PFIC->IENR[TIM2_IRQn/32] |= (1<<(TIM2_IRQn%32));
 }
