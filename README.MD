@@ -12,6 +12,8 @@ ilo nena ni li ken pali e sitelen pona tawa ilo sona kepeken nasin sitelen Wakal
 * nasin sitelen Wakalito li lon insa ona
 * ken pana e sitelen pona tawa ilo sona kepeken [nasin UCSUR pi sitelen pona](https://www.kreativekorp.com/ucsur/charts/sitelen.html)
 * ona li lili. ni li suli ona: 102mm x 64mm x 18mm
+* jan li ken pilin e nena ali lon tenpo sama (ni li wile e lipu kiwen sona "PCB rev2")
+	* lipu "PCB rev0" en lipu "PCB rev1" la jan li ken pilin e nena tu taso lon tenpo sama. sina ante ala e sona pi ilo nena la nena tu taso li pona. taso sina wile ante e sona ona la ken la sina wile e lipu "PCB rev2". ni la sina esun e lipu "PCB rev0" e lipu "PCB rev1" la o toki tawa mi. mi wile pana e ilo nena sin tawa sina kepeken mani ala.
 * jan li ken pana e sona sin tawa ona kepeken nasin "USB"
 * sona ali ona li lon. jan ali li ken lukin e ona li ante e ona li pali e ona
 * jan li ken pali e ona mute kepeken mani lili kepeken tenpo lili
@@ -106,6 +108,8 @@ ilo nena is a purpose-built keyboard for typing sitelen pona glyph of Toki Pona 
 * Built-in [Wakalito](https://sona.pona.la/wiki/Wakalito) input method
 * Supports Unicode output with [sitelen pona UCSUR codepoints](https://www.kreativekorp.com/ucsur/charts/sitelen.html)
 * Compact form factor: 102mm x 64mm x 18mm
+* NKRO support (since PCB rev2)
+	* PCB rev0 and PCB rev1 supported 2KRO only, which's sufficient as long as you don't mod the firmware. If you require NKRO for firmware modding and you happened to have ordered a unit of older revision, let me know and I'll send you a new one for free.
 * Supports USB flashing for firmware update or custom firmware
 * Fully open source (firmware, PCBA, enclosure, user manual, etc.)
 * Cost-optimized for small volume production. Easy to build your own unit
