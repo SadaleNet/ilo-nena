@@ -109,7 +109,7 @@ ilo nena is a purpose-built keyboard for typing sitelen pona glyph of Toki Pona 
 * Supports Unicode output with [sitelen pona UCSUR codepoints](https://www.kreativekorp.com/ucsur/charts/sitelen.html)
 * Compact form factor: 102mm x 64mm x 18mm
 * NKRO support (since PCB rev2)
-	* PCB rev0 and PCB rev1 supported 2KRO only, which's sufficient as long as you don't mod the firmware. If you require NKRO for firmware modding and you happened to have ordered a unit of older revision, let me know and I'll send you a new one for free.
+	* PCB rev0 and PCB rev1 supported 2KRO only, which's sufficient as long as you don't mod the firmware for non-Wakalito use cases. If you require NKRO and you happened to have ordered/received a unit of older revision, let me know and I'll send you a new one for free.
 * Supports USB flashing for firmware update or custom firmware
 * Fully open source (firmware, PCBA, enclosure, user manual, etc.)
 * Cost-optimized for small volume production. Easy to build your own unit
