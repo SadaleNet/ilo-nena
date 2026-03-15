@@ -41,7 +41,11 @@ sina wile kepeken ilo nena la o pali e ni lon ilo sona sina:
 
 ## nasin pi ante sona
 
-sina ken pana e sona sin tawa ilo nena kepeken ilo "[minichlink](https://github.com/cnlohr/ch32fun/tree/master/minichlink)" kepeken nasin ni:
+nasin nanpa wan: sina ken pana e sona sin tawa ilo nena kepeken ilo "[rv003usb-webflasher](https://github.com/SadaleNet/rv003usb-webflasher)" lon ma ni:
+
+* https://ilonena.sadale.net/sona-sin/
+
+nasin nanpa tu: sina ken pana e sona sin tawa ilo nena kepeken ilo "[minichlink](https://github.com/cnlohr/ch32fun/tree/master/minichlink)" kepeken nasin ni:
 
 1. ilo nena sina o jo ala e wawa.
 2. o pilin awen e nena "pana". o weka ala e luka sina.
@@ -135,7 +139,11 @@ ilo nena is a purpose-built keyboard for typing sitelen pona glyph of Toki Pona 
 
 ## Firmware Update
 
-Firmware update can be performed via USB with "[minichlink](https://github.com/cnlohr/ch32fun/tree/master/minichlink)". Instruction:
+Method 1: Firmware update can be done with "[rv003usb-webflasher](https://github.com/SadaleNet/rv003usb-webflasher)":
+
+* Web-based update tool with instruction (in Toki Pona only): https://ilonena.sadale.net/sona-sin/
+
+Method 2: Firmware update can be performed via USB with "[minichlink](https://github.com/cnlohr/ch32fun/tree/master/minichlink)". Instruction:
 
 1. Remove power from ilo nena
 2. Hold the "pana" key (the yellow key on the rightmost column)
