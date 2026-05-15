@@ -19,7 +19,7 @@ const uint32_t LOOKUP_CODEPAGE_0_START = 0x000F1900U;
 const size_t LOOKUP_CODEPAGE_0_LENGTH = 164;
 // codepage 1 - ASCII strings
 const uint32_t LOOKUP_CODEPAGE_1_START = 0xFFFF0000U;
-const size_t LOOKUP_CODEPAGE_1_LENGTH = 19;
+const size_t LOOKUP_CODEPAGE_1_LENGTH = 21;
 // codepage 2 - Unicode strings
 const uint32_t LOOKUP_CODEPAGE_2_START = 0xFFFF1000U;
 const size_t LOOKUP_CODEPAGE_2_LENGTH = 3;
@@ -212,7 +212,9 @@ const char *LOOKUP_CODEPAGE_1 =
 	"Pingo\0"
 	"unu\0"
 	"wa\0"
-	","
+	",\0"
+	"(\0"
+	")"
 ;
 
 const uint32_t *LOOKUP_CODEPAGE_2[] = {
@@ -495,6 +497,7 @@ const struct lookup_full_entry LOOKUP_FULL_TABLE[] = {
 	{.input_u52 = 0x02A9990000000ULL, .codepage=1, .code_id=0x0EU}, // 2reee -> mulapisu
 	{.input_u52 = 0x0333000000000ULL, .codepage=1, .code_id=0x04U}, // 333 -> ...
 	{.input_u52 = 0x0489000000000ULL, .codepage=1, .code_id=0x09U}, // 4we -> oke
+	{.input_u52 = 0x0660000000000ULL, .codepage=1, .code_id=0x13U}, // 66 -> (
 	{.input_u52 = 0x0666000000000ULL, .codepage=1, .code_id=0x00U}, // 666 -> \n
 	{.input_u52 = 0x06C0000000000ULL, .codepage=2, .code_id=0x00U}, // 6y -> /sp
 	{.input_u52 = 0x0821000000000ULL, .codepage=1, .code_id=0x0FU}, // w21 -> Pingo
@@ -521,6 +524,7 @@ const struct lookup_full_entry LOOKUP_FULL_TABLE[] = {
 	{.input_u52 = 0x0A29990000000ULL, .codepage=1, .code_id=0x0EU}, // r2eee -> mulapisu
 	{.input_u52 = 0x0AAA444000000ULL, .codepage=1, .code_id=0x0CU}, // rrr444 -> kiki
 	{.input_u52 = 0x0AAAA44440000ULL, .codepage=1, .code_id=0x0CU}, // rrrr4444 -> kiki
+	{.input_u52 = 0x0CC0000000000ULL, .codepage=1, .code_id=0x14U}, // yy -> )
 	{.input_u52 = 0x0F92200000000ULL, .codepage=1, .code_id=0x0AU}, // fe22 -> isipin
 	{.input_u52 = 0x9A00000000000ULL, .codepage=0, .code_id=0x9DU}, // a -> :
 	{.input_u52 = 0x9A10000000000ULL, .codepage=1, .code_id=0x05U}, // a1 -> :)
@@ -726,6 +730,8 @@ const uint8_t FONT_CODEPAGE_1[] = {
 	0x56, 0x00, 0x80, 0x04, 0xC1, 0x8A, 0xA2, 0x8A, 0x92, 0x72, 0x8A, 0x02, 0x8E, 0x04, 0x8B, 0x04, 0x91, 0x88, 0xA0, 0x70, 0xC0, 0x00, 0x80, // U+FFFF0010
 	0x69, 0x00, 0x38, 0x00, 0x40, 0x00, 0x80, 0xE3, 0x9F, 0x03, // U+FFFF0011
 	0xAA, 0x00, 0x80, 0x00, 0x40, 0x00, 0x20, 0x00, 0x10, 0x00, 0x08, // U+FFFF0012
+	0xC6, 0xF8, 0x3F, 0x04, 0x40, 0x02, 0x80, // U+FFFF0013
+	0xC6, 0x02, 0x80, 0x04, 0x40, 0xF8, 0x3F, // U+FFFF0014
 };
 const uint8_t FONT_CODEPAGE_2[] = {
 	0x06, 0xFE, 0xFF, 0x11, 0x11, 0x11, 0x01, // U+FFFF1000

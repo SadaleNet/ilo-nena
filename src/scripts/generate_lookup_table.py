@@ -96,7 +96,7 @@ symbols_defined = {c:False for c in ".[]:,"}
 
 for word in wakalito_mapping['matches'][:]:
 	# To avoid duplication for the symbols that we're about to add
-	if word.get('trigger') in ['3', '6', 'y', 'a', 'g']:
+	if word.get('trigger') in ['3', '6', 'y', 'a', 'g', '66', 'yy']:
 		wakalito_mapping['matches'].remove(word)
 
 	# This one happens on "a a a " in particular. Somehow it has an extra trailing space, to be removed.
@@ -109,6 +109,8 @@ wakalito_mapping['matches'].append({'trigger': '6', 'replace': '[', 'word': True
 wakalito_mapping['matches'].append({'trigger': 'y', 'replace': ']', 'word': True})
 wakalito_mapping['matches'].append({'trigger': 'a', 'replace': ':', 'word': True})
 wakalito_mapping['matches'].append({'trigger': 'g', 'replace': ',', 'word': True})
+wakalito_mapping['matches'].append({'trigger': '66', 'replace': '(', 'word': True})
+wakalito_mapping['matches'].append({'trigger': 'yy', 'replace': ')', 'word': True})
 
 
 def process_output_word(word):
@@ -1009,6 +1011,46 @@ ___X___X___X___-
 ___X___X___X___-
 ____X_X_X_X____-
 _____X___X_____-
+----------------
+''')
+
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1["("]] = build_font_data('''
+________X______-
+_______X_______-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+______X________-
+_______X_______-
+________X______-
+----------------
+''')
+
+
+font_data[KEYBOARD_CODEPAGE_1_START+word_to_codepoint_codepage_1[")"]] = build_font_data('''
+______X________-
+_______X_______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+________X______-
+_______X_______-
+______X________-
 ----------------
 ''')
 
