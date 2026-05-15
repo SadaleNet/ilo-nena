@@ -407,7 +407,7 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			while(*str) {
 				keyboard_write_codepoint(mode, *str);
 				if(mode == KEYBOARD_OUTPUT_MODE_LINUX) {
-					// For linux, there's a bug in ibus that if we type out the enter immediately,
+					// For linux, there's a bug in ibus that if we type out multiple glyphs without delay in between,
 					// sometimes the glyphs wouldn't be typed properly.
 					// It happens more often when the CPU is straved or on low-end computer.
 					// This delay (slightly longer than 3*30ms) is a workaround of the ibus bug.
