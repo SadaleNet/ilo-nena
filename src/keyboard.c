@@ -406,6 +406,13 @@ void keyboard_write_codepoint(enum keyboard_output_mode mode, uint32_t codepoint
 			const uint32_t *str = lookup_get_unicode_string(2, charcter_id);
 			while(*str) {
 				keyboard_write_codepoint(mode, *str);
+				if(mode == KEYBOARD_OUTPUT_MODE_LINUX) {
+					// For linux, there's a bug in ibus that if we type out the enter immediately,
+					// sometimes the glyphs wouldn't be typed properly.
+					// It happens more often when the CPU is straved or on low-end computer.
+					// This delay (slightly longer than 3*30ms) is a workaround of the ibus bug.
+					keyboard_write_codepoint(KEYBOARD_OUTPUT_MODE_DELAY, 30);
+				}
 				str++;
 			}
 			return;
